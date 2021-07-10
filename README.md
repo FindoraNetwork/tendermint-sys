@@ -44,13 +44,13 @@ RUST_LOG=debug cargo run --example sync_baseapp --features="sync" --no-default-f
 Default this crate is `async`:
 
 ``` toml
-tendermint-sys = { git = "https://github.com/FindoraNetwork/tendermint-sys.git" }
+tendermint-sys = { git = "ssh://git@github.com/FindoraNetwork/tendermint-sys.git" }
 ```
 
 If you want to use `sync`:
 
 ``` toml
-tendermint-sys = { git = "https://github.com/FindoraNetwork/tendermint-sys.git" default-features = false, features = ["sync"] }
+tendermint-sys = { git = "ssh://git@github.com/FindoraNetwork/tendermint-sys.git", default-features = false, features = ["sync"] }
 ```
 
 

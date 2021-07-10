@@ -1,4 +1,3 @@
-
 #[cfg(feature = "async")]
 mod async_abci;
 #[cfg(feature = "async")]
