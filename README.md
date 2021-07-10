@@ -13,7 +13,7 @@
 
 ## Setup requirements
 
-- Go >= v1.15
+- Go >= v1.16
 
 ## Test
 
