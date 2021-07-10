@@ -34,7 +34,7 @@ func UnmarshalBB(data C.ByteBuffer, v interface{}) error {
 }
 
 //export new_node
-func new_node(config_c C.ByteBuffer, private_validator_c C.ByteBuffer, abci_ptr unsafe.Pointer) C.int32_t {
+func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer) C.int32_t {
     var config cfg.Config
     err := UnmarshalBB(config_c, &config)
 
