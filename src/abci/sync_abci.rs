@@ -80,7 +80,7 @@ pub trait SyncApplication: Send {
 
 impl SyncApplication for () {}
 
-pub fn dispatch<A>(app: &mut A, request: Request) -> Response
+pub fn sync_dispatch<A>(app: &mut A, request: Request) -> Response
 where
     A: SyncApplication,
 {
