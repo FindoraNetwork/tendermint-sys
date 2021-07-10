@@ -24,7 +24,7 @@ sync = []
 async = ["smol", "async-trait"]
 
 [[example]]
-name = "baseapp"
+name = "sync_baseapp"
 required-features = ["sync"]
 # default-features = false
 
