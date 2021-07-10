@@ -11,4 +11,4 @@ pub use abci::{dispatch, SyncApplication};
 
 pub mod closure;
 
-pub use tendermint::config;
+// pub use tendermint::config;

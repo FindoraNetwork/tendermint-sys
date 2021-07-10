@@ -6,8 +6,6 @@ use crate::raw::{new_node, start_node, stop_node, NodeIndex};
 use crate::{closure, dispatch, Error, Result, SyncApplication};
 use ffi_support::ByteBuffer;
 use prost::Message;
-// use std::sync::{Arc, RwLock};
-use tendermint::config::TendermintConfig;
 use tendermint_proto::abci::Request;
 
 /// Tendermint node
@@ -18,10 +16,9 @@ pub struct SyncNode {
 
 impl SyncNode {
     /// Create tendermint node from config.
-    pub fn new<A: SyncApplication>(config: TendermintConfig, application: &mut A) -> Result<Self> {
-        let config_json = serde_json::to_vec(&config).unwrap();
-        let config_bytes = ByteBuffer::from_vec(config_json);
-        // let app = Arc::new(RwLock::new(application));
+    pub fn new<A: SyncApplication>(config: &str, application: &mut A) -> Result<Self> {
+        let config_str = String::from(config);
+        let config_bytes = ByteBuffer::from_vec(config_str.into_bytes());
         let handle = move |request: ByteBuffer| -> ByteBuffer {
             let abci_req_bytes = request.as_slice();
             let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
@@ -33,7 +30,7 @@ impl SyncNode {
         };
         let (fptr, uptr) = closure::convert_closure_abci_callback_ptr(handle);
         let ffi_res = unsafe { new_node(config_bytes, fptr, uptr) };
-        if ffi_res != 0 {
+        if ffi_res < 0 {
             return Err(Error::from_new_node_error(ffi_res));
         }
         Ok(SyncNode {
