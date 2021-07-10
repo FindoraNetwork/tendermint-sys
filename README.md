@@ -1,6 +1,6 @@
 # tendermint-sys
 
-> This crate wrap tendermint Go version as Rust crate. You can start a tendermint node from Rust.
+> Wrap tendermint Go version as Rust crate. You can start a tendermint node from Rust.
 
 ## Develop Plan
 
@@ -9,7 +9,7 @@
 - [X] Export tendermint(v0.34) node api using `CGO`.
   - [X] Compile tendermint as static library.
 - [X] Wrap tendermint static library using Rust FFI.
-- [X] Write `build.rs` to using as crate.
+- [X] Write `build.rs` to use as crate.
 - [X] Make basic test.
 - [X] Add async support.
 - [ ] Add api to init tendermint.(instead tendermint offical binary).
