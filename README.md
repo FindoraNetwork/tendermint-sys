@@ -27,18 +27,12 @@ Clone this repo.
 
 Compile this crate.
 
-``` bash
-$ go build -buildmode=c-archive -o tmgo.a
-```
-
 Make test
 ``` bash
 TMHOME="/tmp/example" RUST_LOG=debug cargo run --example basic-abciapp
 ```
 
 ## Usage
-
-> For Future.
 
 ``` toml
 tendermint-sys = { git = "https://github.com/FindoraNetwork/tendermint-sys.git" }
