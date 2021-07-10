@@ -1,6 +1,6 @@
 # tendermint-sys
 
-> This crate wrap tendermint Go version as Rust crate. You can start a tendermint node from Rust.
+> Wrap tendermint Go version as Rust crate. You can start a tendermint node from Rust.
 
 ## Develop Plan
 
