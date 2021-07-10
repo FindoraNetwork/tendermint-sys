@@ -7,8 +7,8 @@
 - [X] Export tendermint(v0.34) node api using `CGO`.
   - [X] Compile tendermint as static library.
 - [X] Wrap tendermint static library using Rust FFI.
-- [ ] Make basic test.
 - [X] Write `build.rs` to using as crate.
+- [ ] Make basic test.
 - [ ] Add api to init tendermint.(instead tendermint offical binary).
 
 ## Setup requirements
