@@ -26,8 +26,6 @@ $ TMHOME="/tmp/example" tendermint init
 
 Clone this repo.
 
-Compile this crate.
-
 Make test
 ``` bash
 RUST_LOG=debug cargo run --example baseapp
@@ -36,7 +34,7 @@ RUST_LOG=debug cargo run --example baseapp
 ## Usage
 
 ``` toml
-tendermint-sys = { git = "https://github.com/FindoraNetwork/tendermint-sys.git" }
+tendermint-sys = { git = "https://github.com/FindoraNetwork/tendermint-sys.git" default-features = false, features = ["sync"] }
 ```
 
 
