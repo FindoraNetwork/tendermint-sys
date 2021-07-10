@@ -3,6 +3,7 @@
 //! This module write by hand, no use bindgen.
 
 use ffi_support::ByteBuffer;
+use std::ffi::c_void;
 
 /// Tendermint node index.
 ///
@@ -12,7 +13,7 @@ pub type NodeIndex = i32;
 /// This function pointer will called when abci messages are trigged.
 ///
 /// ABCI Request and Response are encode by protobuf.
-pub type AbciCallbackPtr = extern "C" fn(ByteBuffer, NodeIndex) -> ByteBuffer;
+pub type AbciCallbackPtr = extern "C" fn(ByteBuffer, NodeIndex, *mut c_void) -> ByteBuffer;
 
 extern "C" {
     /// Creat a tendermint node from configure.
@@ -22,13 +23,17 @@ extern "C" {
     /// If NodeIndex == -1, meaning configure parse failed.
     /// If NodeIndex == -2, meaning load node key from configure file failed.
     /// If NodeIndex == -3, meaning node crate failed.
-    pub fn new_node(config_bytes: ByteBuffer, abci_ptr: AbciCallbackPtr) -> i32;
+    pub fn new_node(
+        config_bytes: ByteBuffer,
+        abci_ptr: AbciCallbackPtr,
+        userdata: *mut c_void,
+    ) -> i32;
 
     /// Start tendermint node.
     ///
     /// If return 0, start success.
     /// Or return -1, node index don't exist.
-    pub fn star_node(index: NodeIndex) -> i32;
+    pub fn start_node(index: NodeIndex) -> i32;
 
     /// Stop tendermint node.
     ///

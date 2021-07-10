@@ -9,11 +9,11 @@ typedef struct ByteBuffer {
     uint8_t *data;
 } ByteBuffer;
 
-typedef ByteBuffer (*bytes_func_ptr)(ByteBuffer, int32_t index);
+typedef ByteBuffer (*bytes_func_ptr)(ByteBuffer, int32_t, void*);
 
 ByteBuffer call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, int32_t index, ByteBuffer bytes) {
     bytes_func_ptr fp = (bytes_func_ptr) abci_ptr;
-    return fp(bytes, index);
+    return fp(bytes, index, userdata);
 }
 */
 import "C"
