@@ -1,4 +1,4 @@
-module github.com/findora/abcf
+module tmgo
 
 go 1.16
 

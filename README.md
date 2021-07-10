@@ -8,7 +8,7 @@
   - [X] Compile tendermint as static library.
 - [X] Wrap tendermint static library using Rust FFI.
 - [ ] Make basic test.
-- [ ] As crate using.
+- [X] Write `build.rs` to using as crate.
 - [ ] Add api to init tendermint.(instead tendermint offical binary).
 
 ## Setup requirements
