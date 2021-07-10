@@ -7,5 +7,6 @@ edition = "2018"
 
 [dependencies]
 ffi-support = "0.4.3"
+log = "0.4.14"
 tendermint = "0.20.0"
 tendermint-abci = "0.20.0"
