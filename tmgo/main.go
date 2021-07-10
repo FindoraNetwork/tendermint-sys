@@ -33,7 +33,7 @@ func UnmarshalBB(data C.ByteBuffer, v interface{}) error {
 }
 
 //export new_node
-func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer) C.int32_t {
+func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Pointer) C.int32_t {
 	var config cfg.Config
 	err := UnmarshalBB(config_c, &config)
 
@@ -66,7 +66,7 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer) C.int32_t {
 		index++
 	}
 
-	app := NewABCFApplication(abci_ptr, index)
+	app := NewABCFApplication(abci_ptr, index, userdata)
 
 	node, err := nm.NewNode(
 		&config,
