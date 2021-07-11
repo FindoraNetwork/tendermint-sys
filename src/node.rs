@@ -21,6 +21,7 @@ pub struct Node {
 
 #[cfg(feature = "async")]
 impl Node {
+    /// Create tendermint node from config.
     pub fn new<A: Application>(config: &str, application: &mut A) -> Result<Self> {
         // local config
         let config_str = String::from(config);
