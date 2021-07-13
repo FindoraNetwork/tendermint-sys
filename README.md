@@ -14,7 +14,7 @@
 - [X] Add async support.
 - [ ] Add api to init tendermint.(instead tendermint offical binary).
 - [X] Regenerate abci proto for `no_std`.
-- [ ] Add `no_std` to tendermint-sys.
+- [X] Add `no_std` protos to tendermint-sys.
 
 ## Setup requirements
 
