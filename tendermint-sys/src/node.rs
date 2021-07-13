@@ -6,7 +6,7 @@ use crate::raw::{new_node, start_node, stop_node, NodeIndex};
 use crate::{closure, Error, Result};
 use ffi_support::ByteBuffer;
 use prost::Message;
-use tendermint_proto::abci::Request;
+use tm_protos::abci::Request;
 
 #[cfg(feature = "sync")]
 use crate::{sync_dispatch, SyncApplication};
