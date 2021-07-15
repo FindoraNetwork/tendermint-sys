@@ -13,6 +13,7 @@ use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::Mutex;
 use tm_protos::abci::{Request, Response};
 
+
 #[cfg(feature = "sync")]
 use crate::{sync_dispatch, SyncApplication};
 
