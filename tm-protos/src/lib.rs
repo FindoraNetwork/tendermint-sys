@@ -16,4 +16,3 @@ pub mod version {
 pub mod crypto {
     include!("protos/tendermint.crypto.rs");
 }
-

@@ -13,7 +13,3 @@ pub use abci::{dispatch, Application};
 
 #[cfg(feature = "sync")]
 pub use abci::{sync_dispatch, SyncApplication};
-
-pub mod closure;
-
-// pub use tendermint::config;

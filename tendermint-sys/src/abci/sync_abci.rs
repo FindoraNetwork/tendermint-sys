@@ -82,7 +82,7 @@ impl SyncApplication for () {}
 
 pub fn sync_dispatch<A>(app: &mut A, request: Request) -> Response
 where
-    A: SyncApplication,
+    A: SyncApplication + ?Sized,
 {
     use request::Value;
     Response {
