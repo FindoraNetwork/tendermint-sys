@@ -1,7 +1,7 @@
 //! Async abci application.
 //!
 //! Async version of abci.
-pub use tendermint_proto::abci::{
+pub use tm_protos::abci::{
     request, response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
     RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
     RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, RequestSetOption, Response,
@@ -87,7 +87,7 @@ impl Application for () {}
 
 pub async fn dispatch<A>(app: &mut A, request: Request) -> Response
 where
-    A: Application,
+    A: Application + ?Sized,
 {
     use request::Value;
     Response {

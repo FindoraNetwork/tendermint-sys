@@ -1,4 +1,4 @@
-pub use tendermint_proto::abci::{
+pub use tm_protos::abci::{
     request, response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
     RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
     RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, RequestSetOption, Response,
@@ -82,7 +82,7 @@ impl SyncApplication for () {}
 
 pub fn sync_dispatch<A>(app: &mut A, request: Request) -> Response
 where
-    A: SyncApplication,
+    A: SyncApplication + ?Sized,
 {
     use request::Value;
     Response {
