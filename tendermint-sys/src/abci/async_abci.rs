@@ -63,7 +63,7 @@ impl Application for () {}
 
 pub async fn dispatch<A>(app: &mut A, request: Request) -> Response
 where
-    A: Application,
+    A: Application + ?Sized,
 {
     use request::Value;
     Response {
