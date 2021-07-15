@@ -2,13 +2,11 @@
 //!
 //! Async version of abci.
 pub use tm_protos::abci::{
-    request, response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
-    RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
-    RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, RequestSetOption, Response,
-    ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit,
-    ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo,
-    ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot,
-    ResponseQuery, ResponseSetOption,
+    request, response, Request, RequestBeginBlock, RequestCheckTx, RequestDeliverTx, RequestEcho,
+    RequestEndBlock, RequestInfo, RequestInitChain, RequestQuery, RequestSetOption, Response,
+    ResponseBeginBlock, ResponseCheckTx, ResponseCommit, ResponseDeliverTx, ResponseEcho,
+    ResponseEndBlock, ResponseFlush, ResponseInfo, ResponseInitChain, ResponseQuery,
+    ResponseSetOption,
 };
 
 /// Async version application for ABCI.
@@ -59,35 +57,13 @@ pub trait Application: Send {
     async fn set_option(&mut self, _request: RequestSetOption) -> ResponseSetOption {
         Default::default()
     }
-
-    async fn list_snapshots(&mut self) -> ResponseListSnapshots {
-        Default::default()
-    }
-
-    async fn offer_snapshot(&mut self, _request: RequestOfferSnapshot) -> ResponseOfferSnapshot {
-        Default::default()
-    }
-
-    async fn load_snapshot_chunk(
-        &mut self,
-        _request: RequestLoadSnapshotChunk,
-    ) -> ResponseLoadSnapshotChunk {
-        Default::default()
-    }
-
-    async fn apply_snapshot_chunk(
-        &mut self,
-        _request: RequestApplySnapshotChunk,
-    ) -> ResponseApplySnapshotChunk {
-        Default::default()
-    }
 }
 
 impl Application for () {}
 
 pub async fn dispatch<A>(app: &mut A, request: Request) -> Response
 where
-    A: Application + ?Sized,
+    A: Application,
 {
     use request::Value;
     Response {
@@ -103,16 +79,6 @@ where
             Value::DeliverTx(req) => response::Value::DeliverTx(app.deliver_tx(req).await),
             Value::EndBlock(req) => response::Value::EndBlock(app.end_block(req).await),
             Value::Commit(_) => response::Value::Commit(app.commit().await),
-            Value::ListSnapshots(_) => response::Value::ListSnapshots(app.list_snapshots().await),
-            Value::OfferSnapshot(req) => {
-                response::Value::OfferSnapshot(app.offer_snapshot(req).await)
-            }
-            Value::LoadSnapshotChunk(req) => {
-                response::Value::LoadSnapshotChunk(app.load_snapshot_chunk(req).await)
-            }
-            Value::ApplySnapshotChunk(req) => {
-                response::Value::ApplySnapshotChunk(app.apply_snapshot_chunk(req).await)
-            }
         }),
     }
 }

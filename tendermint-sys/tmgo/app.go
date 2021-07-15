@@ -102,26 +102,3 @@ func (a ABCFApplication) EndBlock(req abcitypes.RequestEndBlock) abcitypes.Respo
 	return *abci_resp.GetEndBlock()
 }
 
-func (a ABCFApplication) ListSnapshots(req abcitypes.RequestListSnapshots) abcitypes.ResponseListSnapshots {
-	abci_req := abcitypes.ToRequestListSnapshots(req)
-	abci_resp := a.call_abci(abci_req)
-	return *abci_resp.GetListSnapshots()
-}
-
-func (a ABCFApplication) OfferSnapshot(req abcitypes.RequestOfferSnapshot) abcitypes.ResponseOfferSnapshot {
-	abci_req := abcitypes.ToRequestOfferSnapshot(req)
-	abci_resp := a.call_abci(abci_req)
-	return *abci_resp.GetOfferSnapshot()
-}
-
-func (a ABCFApplication) LoadSnapshotChunk(req abcitypes.RequestLoadSnapshotChunk) abcitypes.ResponseLoadSnapshotChunk {
-	abci_req := abcitypes.ToRequestLoadSnapshotChunk(req)
-	abci_resp := a.call_abci(abci_req)
-	return *abci_resp.GetLoadSnapshotChunk()
-}
-
-func (a ABCFApplication) ApplySnapshotChunk(req abcitypes.RequestApplySnapshotChunk) abcitypes.ResponseApplySnapshotChunk {
-	abci_req := abcitypes.ToRequestApplySnapshotChunk(req)
-	abci_resp := a.call_abci(abci_req)
-	return *abci_resp.GetApplySnapshotChunk()
-}

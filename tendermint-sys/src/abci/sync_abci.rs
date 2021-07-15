@@ -1,79 +1,66 @@
 pub use tm_protos::abci::{
-    request, response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
-    RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
-    RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, RequestSetOption, Response,
-    ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit,
-    ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo,
-    ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot,
-    ResponseQuery, ResponseSetOption,
+    request, response, Request, RequestBeginBlock, RequestCheckTx, RequestDeliverTx, RequestEcho,
+    RequestEndBlock, RequestInfo, RequestInitChain, RequestQuery, RequestSetOption, Response,
+    ResponseBeginBlock, ResponseCheckTx, ResponseCommit, ResponseDeliverTx, ResponseEcho,
+    ResponseEndBlock, ResponseFlush, ResponseInfo, ResponseInitChain, ResponseQuery,
+    ResponseSetOption,
 };
 
 pub trait SyncApplication: Send {
     fn echo(&mut self, request: RequestEcho) -> ResponseEcho {
+        log::debug!("echo");
         ResponseEcho {
             message: request.message,
         }
     }
 
     fn info(&mut self, _request: RequestInfo) -> ResponseInfo {
+        log::debug!("info");
         Default::default()
     }
 
     fn init_chain(&mut self, _request: RequestInitChain) -> ResponseInitChain {
+        log::debug!("init_chain");
         Default::default()
     }
 
     fn query(&mut self, _request: RequestQuery) -> ResponseQuery {
+        log::debug!("query");
         Default::default()
     }
 
     fn check_tx(&mut self, _request: RequestCheckTx) -> ResponseCheckTx {
+        log::debug!("check_tx");
         Default::default()
     }
 
     fn begin_block(&mut self, _request: RequestBeginBlock) -> ResponseBeginBlock {
+        log::debug!("begin_block");
         Default::default()
     }
 
     fn deliver_tx(&mut self, _request: RequestDeliverTx) -> ResponseDeliverTx {
+        log::debug!("deliver_tx");
         Default::default()
     }
 
     fn end_block(&mut self, _request: RequestEndBlock) -> ResponseEndBlock {
+        log::debug!("end_block");
         Default::default()
     }
 
     fn flush(&mut self) -> ResponseFlush {
+        log::debug!("flush");
         ResponseFlush {}
     }
 
     fn commit(&mut self) -> ResponseCommit {
+        log::debug!("commit");
         Default::default()
     }
 
     fn set_option(&mut self, _request: RequestSetOption) -> ResponseSetOption {
-        Default::default()
-    }
-
-    fn list_snapshots(&mut self) -> ResponseListSnapshots {
-        Default::default()
-    }
-
-    fn offer_snapshot(&mut self, _request: RequestOfferSnapshot) -> ResponseOfferSnapshot {
-        Default::default()
-    }
-
-    fn load_snapshot_chunk(
-        &mut self,
-        _request: RequestLoadSnapshotChunk,
-    ) -> ResponseLoadSnapshotChunk {
-        Default::default()
-    }
-
-    fn apply_snapshot_chunk(
-        &mut self,
-        _request: RequestApplySnapshotChunk,
-    ) -> ResponseApplySnapshotChunk {
+        log::debug!("set_option");
         Default::default()
     }
 }
@@ -98,14 +85,6 @@ where
             Value::DeliverTx(req) => response::Value::DeliverTx(app.deliver_tx(req)),
             Value::EndBlock(req) => response::Value::EndBlock(app.end_block(req)),
             Value::Commit(_) => response::Value::Commit(app.commit()),
-            Value::ListSnapshots(_) => response::Value::ListSnapshots(app.list_snapshots()),
-            Value::OfferSnapshot(req) => response::Value::OfferSnapshot(app.offer_snapshot(req)),
-            Value::LoadSnapshotChunk(req) => {
-                response::Value::LoadSnapshotChunk(app.load_snapshot_chunk(req))
-            }
-            Value::ApplySnapshotChunk(req) => {
-                response::Value::ApplySnapshotChunk(app.apply_snapshot_chunk(req))
-            }
         }),
     }
 }

@@ -1,18 +1,20 @@
 #![no_std]
-#![allow(rustdoc::bare_urls)]
 
 pub mod abci {
-    include!("protos/tendermint.abci.rs");
+    mod types {
+        include!("protos/tendermint.abci.types.rs");
+    }
+    pub use types::*;
 }
 
-pub mod types {
-    include!("protos/tendermint.types.rs");
-}
-
-pub mod version {
-    include!("protos/tendermint.version.rs");
+pub mod libs {
+    pub mod kv {
+        include!("protos/tendermint.libs.kv.rs");
+    }
 }
 
 pub mod crypto {
-    include!("protos/tendermint.crypto.rs");
+    pub mod merkle {
+        include!("protos/tendermint.crypto.merkle.rs");
+    }
 }
