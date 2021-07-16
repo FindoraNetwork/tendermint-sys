@@ -10,12 +10,13 @@ fn main() {
     let code_dir = env::current_dir().unwrap();
     let go_dir = code_dir.join("tmgo");
 
-    Command::new("go")
-        .args(&["build", "-buildmode=c-archive", "-o"])
+    let status = Command::new("../scripts/build.sh")
         .arg(&format!("{}/libtmgo.a", out_dir))
         .current_dir(go_dir)
         .status()
         .unwrap();
+
+    assert!(status.success());
 
     println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=tmgo");
