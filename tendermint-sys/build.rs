@@ -20,6 +20,10 @@ fn main() {
 
     println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=tmgo");
-    println!("cargo:rustc-link-lib=framework=CoreFoundation");
-    println!("cargo:rustc-link-lib=framework=Security");
+
+    let target = env::var("TARGET").unwrap();
+    if target == "x86_64-apple-darwin" {
+        println!("cargo:rustc-link-lib=framework=CoreFoundation");
+        println!("cargo:rustc-link-lib=framework=Security");
+    }
 }
