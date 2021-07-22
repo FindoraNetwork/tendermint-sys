@@ -35,7 +35,8 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Po
 	configFile := string(C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len)))
 	config := cfg.DefaultConfig()
 
-	config.RootDir = filepath.Dir(filepath.Dir(configFile))
+    root_dir := filepath.Dir(filepath.Dir(configFile))
+    config.RootDir = root_dir
 	viper.SetConfigFile(configFile)
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Fprintf(os.Stderr, "viper failed to read config file: %v\n", err)
@@ -49,6 +50,9 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Po
 		fmt.Fprintf(os.Stderr, "config is invalid: %v\n", err)
 		return -1
 	}
+
+    fmt.Println(root_dir)
+    config.SetRoot(root_dir)
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
