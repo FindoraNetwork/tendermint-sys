@@ -51,7 +51,6 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Po
 		return -1
 	}
 
-    fmt.Println(root_dir)
     config.SetRoot(root_dir)
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
@@ -63,12 +62,12 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Po
 		return -4
 	}
 
-	pv := privval.LoadFilePV(
+	pv := privval.LoadOrGenFilePV(
 		config.PrivValidatorKeyFile(),
 		config.PrivValidatorStateFile(),
 	)
 
-	nodeKey, err := p2p.LoadNodeKey(config.NodeKeyFile())
+	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
 	if err != nil {
 		// load node key error.
 		fmt.Fprintf(os.Stderr, "%v", err)

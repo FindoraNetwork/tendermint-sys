@@ -59,7 +59,7 @@ extern "C" fn abci_callback(
     let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
     log::debug!("recv req: {:?}", abci_req);
     let resp = call_abci(index, abci_req);
-    log::debug!("send resp]: {:?}", resp);
+    log::debug!("send resp: {:?}", resp);
     let mut r_bytes = Vec::new();
     resp.encode(&mut r_bytes).unwrap();
     ByteBuffer::from_vec(r_bytes)
