@@ -18,11 +18,12 @@ pub type AbciCallbackPtr = extern "C" fn(ByteBuffer, NodeIndex, *mut c_void) -> 
 extern "C" {
     /// Creat a tendermint node from configure.
     ///
-    /// This function receive configure string as json. Then return `NodeIndex`.
+    /// This function receive configure path. Then return `NodeIndex`.
     /// If NodeIndex >= 0, meaning node create success.
     /// If NodeIndex == -1, meaning configure parse failed.
     /// If NodeIndex == -2, meaning load node key from configure file failed.
     /// If NodeIndex == -3, meaning node crate failed.
+    /// If NodeIndex == -4, meaning logger init failed.
     pub fn new_node(
         config_bytes: ByteBuffer,
         abci_ptr: AbciCallbackPtr,
@@ -40,6 +41,17 @@ extern "C" {
     /// If return 0, start success.
     /// Or return -1, node index don't exist.
     pub fn stop_node(index: NodeIndex) -> i32;
+
+
+    /// Init config file
+    ///
+    /// This function receive configure path. Then return `StatusCode`.
+    /// If StatusCode == 0, meaning config file create success.
+    /// If StatusCode == -1, meaning logger init failed.
+    /// If StatusCode == -2, meaning node key init failed.
+    /// If StatusCode == -3, meaning public key get failed.
+    /// If StatusCode == -4, meaning genesis save failed.
+    pub fn init_config(config_bytes: ByteBuffer) -> i32;
 }
 
 // #[no_mangle]

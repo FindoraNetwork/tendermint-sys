@@ -1,3 +1,5 @@
+use std::io;
+
 #[derive(Debug)]
 pub enum Error {
     ConfigParseFailed,
@@ -5,17 +7,35 @@ pub enum Error {
     CreatNodeFailed,
     GoLogLevelError,
     NoNodeIndex,
+    GetPublicKeyError,
     Unknown,
+    GenesisFileSaveError,
+    StdFsError(io::Error),
+}
+
+impl From<io::Error> for Error {
+    fn from(e: io::Error) -> Self {
+        Self::StdFsError(e)
+    }
 }
 
 impl Error {
     pub fn from_new_node_error(code: i32) -> Self {
-        println!("{}", code);
         match code {
             -1 => Error::ConfigParseFailed,
             -2 => Error::LoadNodeKeyFailed,
             -3 => Error::CreatNodeFailed,
             -4 => Error::GoLogLevelError,
+            _ => Error::Unknown,
+        }
+    }
+
+    pub fn from_new_config_error(code: i32) -> Self {
+        match code {
+            -1 => Error::GoLogLevelError,
+            -2 => Error::LoadNodeKeyFailed,
+            -3 => Error::GetPublicKeyError,
+            -4 => Error::GenesisFileSaveError,
             _ => Error::Unknown,
         }
     }

@@ -101,4 +101,3 @@ func (a ABCFApplication) EndBlock(req abcitypes.RequestEndBlock) abcitypes.Respo
 	abci_resp := a.call_abci(abci_req)
 	return *abci_resp.GetEndBlock()
 }
-
