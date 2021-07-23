@@ -15,10 +15,16 @@ use tm_protos::abci::{Request, Response};
 
 
 #[cfg(feature = "sync")]
-use crate::{sync_dispatch, SyncApplication};
+use crate::sync_dispatch;
+
+#[cfg(feature = "sync")]
+use tm_abci::SyncApplication;
 
 #[cfg(feature = "async")]
-use crate::{dispatch, Application};
+use crate::dispatch;
+
+#[cfg(feature = "async")]
+use tm_abci::Application;
 
 #[cfg(feature = "async")]
 lazy_static::lazy_static! {
