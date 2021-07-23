@@ -13,15 +13,15 @@ prost = "0.8.0"
 smol = { version = "1.2.5", optional = true }
 lazy_static = "1.4.0"
 tm-protos = { path = "../tm-protos" }
-tm-abci = { path = "../tm-abci" }
+tm-abci = { path = "../tm-abci", default-features = false }
 
 [dev-dependencies]
 env_logger = "0.8.4"
 
 [features]
 default = ["async"]
-sync = []
-async = ["smol", "async-trait"]
+sync = ["tm-abci/sync"]
+async = ["smol", "async-trait", "tm-abci/async"]
 
 [[example]]
 name = "sync_baseapp"
