@@ -9,7 +9,7 @@ pub use error::{Error, Result};
 mod abci;
 
 #[cfg(feature = "async")]
-pub use abci::{dispatch, Application};
+pub use abci::dispatch;
 
 #[cfg(feature = "sync")]
-pub use abci::{sync_dispatch, SyncApplication};
+pub use abci::sync_dispatch;

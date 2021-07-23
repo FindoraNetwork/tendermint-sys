@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "tendermint-sys",
+    "tm-abci",
     "tm-protos",
 ]
