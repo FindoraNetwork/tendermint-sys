@@ -18,9 +18,11 @@ tm-protos = { path = "../tm-protos" }
 env_logger = "0.8.4"
 
 [features]
-default = ["async"]
+default = ["async", "golevedb"]
 sync = []
 async = ["smol", "async-trait"]
+golevedb = []
+cleveldb = []
 
 [[example]]
 name = "sync_baseapp"
