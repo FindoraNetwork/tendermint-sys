@@ -23,7 +23,7 @@ fn main() {
     let app = App {
         counter: 0
     };
-    let node = Node::new("/tmp/example/config/config.toml", app).unwrap();
+    let node = Node::new("./target/tendermint/config/config.toml", app).unwrap();
     node.start().unwrap();
     loop {}
 }

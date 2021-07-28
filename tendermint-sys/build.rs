@@ -20,6 +20,7 @@ fn main() {
 
     println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=tmgo");
+    println!("cargo:rustc-link-lib=leveldb");
 
     let target = env::var("TARGET").unwrap();
     if target == "x86_64-apple-darwin" {
