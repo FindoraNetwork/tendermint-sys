@@ -19,6 +19,7 @@
 ## Setup requirements
 
 - Go >= v1.16
+- Rust stable 1.54
 
 ## Test
 
