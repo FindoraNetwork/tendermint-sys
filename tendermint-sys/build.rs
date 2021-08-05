@@ -31,15 +31,13 @@ fn main() {
     command.arg(&format!("{}/libtmgo.a", out_dir));
     command.current_dir(go_dir);
 
-    let status = command
-        .status()
-        .unwrap();
+    let status = command.status().unwrap();
 
     assert!(status.success());
 
     println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=tmgo");
-    
+
     if leveldb == LevelDB::Cleveldb {
         println!("cargo:rustc-link-lib=leveldb");
     }

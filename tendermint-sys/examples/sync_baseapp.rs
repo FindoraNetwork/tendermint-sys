@@ -20,9 +20,7 @@ impl SyncApplication for App {
 
 fn main() {
     env_logger::init();
-    let app = App {
-        counter: 0
-    };
+    let app = App { counter: 0 };
     let node = Node::new("./target/tendermint/config/config.toml", app).unwrap();
     node.start().unwrap();
     loop {}

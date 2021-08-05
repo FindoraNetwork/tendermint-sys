@@ -42,7 +42,6 @@ extern "C" {
     /// Or return -1, node index don't exist.
     pub fn stop_node(index: NodeIndex) -> i32;
 
-
     /// Init config file
     ///
     /// This function receive configure path. Then return `StatusCode`.

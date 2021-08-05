@@ -7,6 +7,7 @@ mod error;
 pub use error::{Error, Result};
 
 mod abci;
+
 #[cfg(feature = "async")]
 pub use abci::{dispatch, Application};
 
@@ -15,4 +16,3 @@ pub use abci::{sync_dispatch, SyncApplication};
 
 mod init;
 pub use init::init_home;
-

@@ -1,4 +1,4 @@
-use crate::{Error, Result, raw::init_config};
+use crate::{raw::init_config, Error, Result};
 use ffi_support::ByteBuffer;
 use std::{fs, path::Path};
 
@@ -18,7 +18,7 @@ pub fn init_home(path: &str) -> Result<()> {
     let home_path = Path::new(path);
     let config_dir_path = home_path.join("config");
     let data_dir_path = home_path.join("data");
-    
+
     fs::create_dir_all(data_dir_path)?;
     fs::create_dir_all(config_dir_path.clone())?;
 
@@ -26,4 +26,3 @@ pub fn init_home(path: &str) -> Result<()> {
     new_config(config_file_path.to_str().unwrap())?;
     Ok(())
 }
-

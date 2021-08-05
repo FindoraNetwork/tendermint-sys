@@ -1,6 +1,9 @@
+//!
 //! Async abci application.
 //!
 //! Async version of abci.
+//!
+
 pub use tm_protos::abci::{
     request, response, Request, RequestBeginBlock, RequestCheckTx, RequestDeliverTx, RequestEcho,
     RequestEndBlock, RequestInfo, RequestInitChain, RequestQuery, RequestSetOption, Response,

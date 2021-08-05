@@ -1,18 +1,22 @@
+//!
 //! Tendermint Node.
 //!
 //! Create, start or stop tendermint node.
+//!
 
 use crate::raw::{new_node, start_node, stop_node, NodeIndex};
 use crate::{Error, Result};
 use ffi_support::ByteBuffer;
+use lazy_static::lazy_static;
 use prost::Message;
-use std::collections::BTreeMap;
-use std::ffi::c_void;
-use std::ptr::null_mut;
-use std::sync::atomic::{AtomicI32, Ordering};
-use std::sync::Mutex;
+use std::{
+    collections::BTreeMap,
+    ffi::c_void,
+    ptr::null_mut,
+    sync::atomic::{AtomicI32, Ordering},
+    sync::Mutex,
+};
 use tm_protos::abci::{Request, Response};
-
 
 #[cfg(feature = "sync")]
 use crate::{sync_dispatch, SyncApplication};
@@ -20,17 +24,19 @@ use crate::{sync_dispatch, SyncApplication};
 #[cfg(feature = "async")]
 use crate::{dispatch, Application};
 
-#[cfg(feature = "async")]
-lazy_static::lazy_static! {
-    static ref APPLICATIONS: Mutex<BTreeMap<i32, Box<dyn Application>>> = Mutex::new(BTreeMap::new());
+#[cfg(all(feature = "async", not(feature = "sync")))]
+lazy_static! {
+    static ref APPLICATIONS: Mutex<BTreeMap<i32, Box<dyn Application>>> =
+        Mutex::new(BTreeMap::new());
 }
 
-#[cfg(feature = "sync")]
-lazy_static::lazy_static! {
-    static ref APPLICATIONS: Mutex<BTreeMap<i32, Box<dyn SyncApplication>>> = Mutex::new(BTreeMap::new());
+#[cfg(all(feature = "sync", not(feature = "async")))]
+lazy_static! {
+    static ref APPLICATIONS: Mutex<BTreeMap<i32, Box<dyn SyncApplication>>> =
+        Mutex::new(BTreeMap::new());
 }
 
-lazy_static::lazy_static! {
+lazy_static! {
     static ref INDEX: AtomicI32 = AtomicI32::new(1);
 }
 
