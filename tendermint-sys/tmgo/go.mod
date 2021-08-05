@@ -8,7 +8,3 @@ require (
 )
 
 replace github.com/tendermint/tendermint => github.com/FindoraNetwork/tendermint v0.33.6-findora
-
-replace runtime => ./runtime
-
-replace runtime/cgo => ./runtime/cgo
