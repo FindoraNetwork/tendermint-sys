@@ -166,6 +166,7 @@ index 30b7044bff..f56ebd3a19 100644
  	}
 +	if islibrary || isarchive {
 +		if !sysLibArgsValid {
++           argslice = [1]string {"faker"}
 +			return
 +		}
 +	}
