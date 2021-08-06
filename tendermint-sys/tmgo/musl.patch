@@ -160,7 +160,7 @@ index 30b7044bff..f56ebd3a19 100644
  	return *(**byte)(add(unsafe.Pointer(argv), uintptr(i)*sys.PtrSize))
  }
  
-@@ -68,6 +74,12 @@ func goargs() {
+@@ -68,6 +74,13 @@ func goargs() {
  	if GOOS == "windows" {
  		return
  	}
