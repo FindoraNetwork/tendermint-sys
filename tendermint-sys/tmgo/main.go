@@ -7,6 +7,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
+	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
 	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
@@ -127,12 +128,12 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Po
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-	//     var err error
-	// logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel())
-	// if err != nil {
-	//     fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
-	//     return -4
-	// }
+    var err error
+    logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
+        return -4
+    }
 
 	pv := privval.LoadFilePV(
 		config.PrivValidatorKeyFile(),
