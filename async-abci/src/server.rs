@@ -1,10 +1,10 @@
 use crate::{Codec, Error, Result};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tm_abci::Application;
 use tm_protos::abci::{request::Value, response, Request, Response};
 use tokio::net::{TcpListener, TcpStream, ToSocketAddrs};
 use tokio::sync::Mutex;
-use tm_abci::Application;
 
 pub const DEFAULT_SERVER_READ_BUF_SIZE: usize = 1024 * 1024;
 

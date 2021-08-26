@@ -6,4 +6,3 @@ pub use codec::Codec;
 
 mod error;
 pub use error::{Error, Result};
-

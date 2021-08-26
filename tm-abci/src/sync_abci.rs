@@ -83,4 +83,3 @@ pub trait SyncApplication: Send {
 }
 
 impl SyncApplication for () {}
-

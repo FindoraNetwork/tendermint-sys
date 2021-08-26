@@ -87,4 +87,3 @@ pub trait Application: Send {
 }
 
 impl Application for () {}
-

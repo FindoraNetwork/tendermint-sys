@@ -1,4 +1,5 @@
-use tendermint_sys::{Node, SyncApplication};
+use tendermint_sys::Node;
+use tm_abci::SyncApplication;
 use tm_protos::abci::{RequestBeginBlock, RequestInfo, ResponseBeginBlock, ResponseInfo};
 
 struct App {
@@ -20,10 +21,8 @@ impl SyncApplication for App {
 
 fn main() {
     env_logger::init();
-    let app = App {
-        counter: 0
-    };
-    let node = Node::new("/tmp/example/config/config.toml", app).unwrap();
+    let app = App { counter: 0 };
+    let node = Node::new("./target/tendermint/config/config.toml", app).unwrap();
     node.start().unwrap();
     loop {}
 }

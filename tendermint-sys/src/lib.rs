@@ -13,3 +13,6 @@ pub use abci::dispatch;
 
 #[cfg(feature = "sync")]
 pub use abci::sync_dispatch;
+
+mod init;
+pub use init::init_home;

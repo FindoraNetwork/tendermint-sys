@@ -1,4 +1,4 @@
-use tm_protos::abci::{request, Response, Request, response};
+use tm_protos::abci::{request, response, Request, Response};
 
 #[cfg(feature = "async")]
 use tm_abci::Application;

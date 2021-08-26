@@ -1,5 +1,5 @@
-use tm_abci::Application;
 use tendermint_sys::Node;
+use tm_abci::Application;
 use tm_protos::abci::{RequestBeginBlock, RequestInfo, ResponseBeginBlock, ResponseInfo};
 
 struct App {

@@ -11,4 +11,3 @@ pub use async_abci::Application;
 mod sync_abci;
 #[cfg(feature = "sync")]
 pub use sync_abci::SyncApplication;
-

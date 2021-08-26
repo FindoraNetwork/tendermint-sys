@@ -40,6 +40,16 @@ extern "C" {
     /// If return 0, start success.
     /// Or return -1, node index don't exist.
     pub fn stop_node(index: NodeIndex) -> i32;
+
+    /// Init config file
+    ///
+    /// This function receive configure path. Then return `StatusCode`.
+    /// If StatusCode == 0, meaning config file create success.
+    /// If StatusCode == -1, meaning logger init failed.
+    /// If StatusCode == -2, meaning node key init failed.
+    /// If StatusCode == -3, meaning public key get failed.
+    /// If StatusCode == -4, meaning genesis save failed.
+    pub fn init_config(config_bytes: ByteBuffer) -> i32;
 }
 
 // #[no_mangle]
