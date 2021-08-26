@@ -19,9 +19,11 @@ tm-abci = { path = "../tm-abci", default-features = false }
 env_logger = "0.8.4"
 
 [features]
-default = ["async"]
+default = ["async", "goleveldb"]
 sync = ["tm-abci/sync"]
 async = ["smol", "async-trait", "tm-abci/async"]
+goleveldb = []
+cleveldb = []
 
 [[example]]
 name = "sync_baseapp"
