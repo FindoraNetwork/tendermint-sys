@@ -14,6 +14,7 @@ impl SyncApplication for App {
     fn begin_block(&mut self, _request: RequestBeginBlock) -> ResponseBeginBlock {
         log::info!("inner value is: {}", self.counter);
         self.counter += 1;
+        panic!("asdsa");
         Default::default()
     }
 }

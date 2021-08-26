@@ -9,6 +9,7 @@ use crate::{Error, Result};
 use ffi_support::ByteBuffer;
 use lazy_static::lazy_static;
 use prost::Message;
+use std::panic::catch_unwind;
 use std::{
     collections::BTreeMap,
     ffi::c_void,
@@ -64,11 +65,19 @@ extern "C" fn abci_callback(
     let abci_req_bytes = argument.as_slice();
     let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
     log::debug!("recv req: {:?}", abci_req);
-    let resp = call_abci(index, abci_req);
-    log::debug!("send resp: {:?}", resp);
-    let mut r_bytes = Vec::new();
-    resp.encode(&mut r_bytes).unwrap();
-    ByteBuffer::from_vec(r_bytes)
+    let resp = catch_unwind(|| call_abci(index, abci_req));
+    if resp.is_err() {
+        println!("{:?}", resp);
+        unsafe {
+            stop_node(index);
+        }
+        ByteBuffer::from_vec(Vec::new())
+    } else {
+        log::debug!("send resp: {:?}", resp);
+        let mut r_bytes = Vec::new();
+        resp.unwrap().encode(&mut r_bytes).unwrap();
+        ByteBuffer::from_vec(r_bytes)
+    }
 }
 
 /// Tendermint node
