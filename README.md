@@ -12,7 +12,7 @@
 - [X] Write `build.rs` to use as crate.
 - [X] Make basic test.
 - [X] Add async support.
-- [ ] Add api to init tendermint.(instead tendermint offical binary).
+- [X] Add api to init tendermint.(instead tendermint offical binary).
 - [X] Regenerate abci proto for `no_std`.
 - [X] Add `no_std` protos to tendermint-sys.
 
