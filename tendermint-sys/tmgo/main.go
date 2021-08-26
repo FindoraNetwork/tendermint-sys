@@ -5,14 +5,14 @@ import (
 	"github.com/spf13/viper"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
-    tmos "github.com/tendermint/tendermint/libs/os"
-	nm "github.com/tendermint/tendermint/node"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmtime "github.com/tendermint/tendermint/types/time"
-    "github.com/tendermint/tendermint/types"
+	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
+	"github.com/tendermint/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 	"os"
 	"path/filepath"
 	"sync"
@@ -38,7 +38,7 @@ func init_config(config_c C.ByteBuffer) C.int32_t {
 	configFile := string(C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len)))
 	config := cfg.DefaultConfig()
 
-    cfg.WriteConfigFile(configFile, config)
+	cfg.WriteConfigFile(configFile, config)
 
 	root_dir := filepath.Dir(filepath.Dir(configFile))
 
@@ -46,8 +46,8 @@ func init_config(config_c C.ByteBuffer) C.int32_t {
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-    // init config
-    privValKeyFile := config.PrivValidatorKeyFile()
+	// init config
+	privValKeyFile := config.PrivValidatorKeyFile()
 	privValStateFile := config.PrivValidatorStateFile()
 	var pv *privval.FilePV
 	if tmos.FileExists(privValKeyFile) {
@@ -97,7 +97,7 @@ func init_config(config_c C.ByteBuffer) C.int32_t {
 		logger.Info("Generated genesis file", "path", genFile)
 	}
 
-    return 0
+	return 0
 }
 
 //export new_node
@@ -105,8 +105,11 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Po
 	configFile := string(C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len)))
 	config := cfg.DefaultConfig()
 
-	config.RootDir = filepath.Dir(filepath.Dir(configFile))
+	root_dir := filepath.Dir(filepath.Dir(configFile))
+	config.RootDir = root_dir
+
 	viper.SetConfigFile(configFile)
+
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Fprintf(os.Stderr, "viper failed to read config file: %v\n", err)
 		return -1
@@ -120,9 +123,11 @@ func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Po
 		return -1
 	}
 
+	config.SetRoot(root_dir)
+
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-   //  var err error
+	//     var err error
 	// logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel())
 	// if err != nil {
 	//     fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
