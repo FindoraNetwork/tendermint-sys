@@ -4,7 +4,7 @@
 //! Create, start or stop tendermint node.
 //!
 
-use crate::raw::{new_node, start_node, stop_node, NodeIndex};
+use crate::raw::{ByteBufferReturn, NodeIndex, new_node, start_node, stop_node};
 use crate::{Error, Result};
 use ffi_support::ByteBuffer;
 use lazy_static::lazy_static;
@@ -60,7 +60,7 @@ extern "C" fn abci_callback(
     argument: ByteBuffer,
     index: i32,
     _userdata: *mut c_void,
-) -> ByteBuffer {
+) -> ByteBufferReturn {
     let abci_req_bytes = argument.as_slice();
     let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
     log::debug!("recv req: {:?}", abci_req);
@@ -68,7 +68,18 @@ extern "C" fn abci_callback(
     log::debug!("send resp: {:?}", resp);
     let mut r_bytes = Vec::new();
     resp.encode(&mut r_bytes).unwrap();
-    ByteBuffer::from_vec(r_bytes)
+
+    let result_len = r_bytes.len();
+    let result_ptr = r_bytes.as_ptr();
+
+    unsafe {
+        let bytes = libc::malloc(result_len);
+        std::ptr::copy(result_ptr, bytes as *mut u8, result_len);
+        ByteBufferReturn {
+            len: result_len,
+            data: bytes as *mut u8,
+        }
+    }
 }
 
 /// Tendermint node
