@@ -5,6 +5,12 @@
 use ffi_support::ByteBuffer;
 use std::ffi::c_void;
 
+#[repr(C)]
+pub struct ByteBufferReturn {
+    pub len: usize,
+    pub data: *mut u8,
+}
+
 /// Tendermint node index.
 ///
 /// If value > 0, is a valid index.
@@ -13,7 +19,7 @@ pub type NodeIndex = i32;
 /// This function pointer will called when abci messages are trigged.
 ///
 /// ABCI Request and Response are encode by protobuf.
-pub type AbciCallbackPtr = extern "C" fn(ByteBuffer, NodeIndex, *mut c_void) -> ByteBuffer;
+pub type AbciCallbackPtr = extern "C" fn(ByteBuffer, NodeIndex, *mut c_void) -> ByteBufferReturn;
 
 extern "C" {
     /// Creat a tendermint node from configure.

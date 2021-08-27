@@ -11,6 +11,7 @@ prost = "0.8.0"
 smol = { version = "1.2.5", optional = true }
 lazy_static = "1.4.0"
 tm-protos = { path = "../tm-protos" }
+libc = "0.2"
 
 [dev-dependencies]
 env_logger = "0.8.4"
