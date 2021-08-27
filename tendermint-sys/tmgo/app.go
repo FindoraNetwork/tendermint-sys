@@ -4,6 +4,7 @@ package main
 // #cgo LDFLAGS: -L${SRCDIR}/../target/release -ltmslim
 #include<stdint.h>
 #include<stddef.h>
+#include<stdlib.h>
 
 typedef struct ByteBuffer {
     int64_t len;
