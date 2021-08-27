@@ -25,5 +25,5 @@ fn main() {
     let app = App { counter: 0 };
     let node = Node::new("./target/tendermint/config/config.toml", app).unwrap();
     node.start().unwrap();
-    loop {}
+    std::thread::park();
 }
