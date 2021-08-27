@@ -1,8 +1,8 @@
 # tendermint-sys
 
-> Wrap tendermint Go version as Rust crate. You can start a tendermint node from Rust.
+> Wrap tendermint Go version as Rust crate. You can manage tendermint node in Rust.
 
-## Develop Plan
+## Features
 
 > Basic work, need more testing.
 
@@ -15,6 +15,12 @@
 - [X] Add api to init tendermint.(instead tendermint offical binary).
 - [X] Regenerate abci proto for `no_std`.
 - [X] Add `no_std` protos to tendermint-sys.
+
+## Status
+
+Supported platform:
+
+- Linux (gnu)
 
 ## Setup requirements
 
