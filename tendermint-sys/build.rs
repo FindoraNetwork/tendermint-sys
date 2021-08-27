@@ -22,6 +22,8 @@ fn main() {
         Err(_) => LevelDB::Goleveldb,
     };
 
+    // get libffi_slim.a
+
     let mut command = Command::new("../scripts/build.sh");
     if leveldb == LevelDB::Cleveldb {
         command.arg("cleveldb");

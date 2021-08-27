@@ -1,19 +1,29 @@
 package main
 
 /*
-// #cgo LDFLAGS: -L${SRCDIR}/../target/release -ltmslim
+// #cgo LDFLAGS: -L${SRCDIR}/../target/release -lffi_slim
 #include<stdint.h>
+#include<stddef.h>
 
 typedef struct ByteBuffer {
     int64_t len;
     uint8_t *data;
 } ByteBuffer;
 
-typedef ByteBuffer (*bytes_func_ptr)(ByteBuffer, int32_t, void*);
+typedef struct ByteBufferReturn {
+    size_t len;
+    uint8_t *data;
+} ByteBufferReturn;
 
-ByteBuffer call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, int32_t index, ByteBuffer bytes) {
+typedef ByteBufferReturn (*bytes_func_ptr)(ByteBuffer, int32_t, void*);
+
+ByteBufferReturn call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, int32_t index, ByteBuffer bytes) {
     bytes_func_ptr fp = (bytes_func_ptr) abci_ptr;
     return fp(bytes, index, userdata);
+}
+
+void c_free(uint8_t *p) {
+    free(p);
 }
 */
 import "C"
@@ -42,9 +52,13 @@ func (a ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
 	arg.data = (*C.uchar)(&data[0])
 
 	bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
+
 	resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
+
 	resp := abcitypes.Response{}
 	resp.Unmarshal(resp_data)
+
+    C.c_free(bb.data)
 	return resp
 }
 

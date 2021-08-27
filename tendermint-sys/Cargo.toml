@@ -7,13 +7,14 @@ edition = "2018"
 
 [dependencies]
 async-trait = { version = "0.1.50", optional = true }
-ffi-support = "0.4.3"
+ffi-support = "0.4.4"
 log = "0.4.14"
 prost = "0.8.0"
 smol = { version = "1.2.5", optional = true }
 lazy_static = "1.4.0"
 tm-protos = { path = "../tm-protos" }
 tm-abci = { path = "../tm-abci", default-features = false }
+libc = "0.2"
 
 [dev-dependencies]
 env_logger = "0.8.4"

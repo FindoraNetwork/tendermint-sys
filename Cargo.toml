@@ -4,4 +4,5 @@ members = [
     "tm-abci",
     "tm-protos",
     "async-abci",
+    # "ffi-slim",
 ]
