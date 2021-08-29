@@ -72,9 +72,11 @@ extern "C" fn abci_callback(
     let result_len = r_bytes.len();
     let result_ptr = r_bytes.as_ptr();
 
+
     unsafe {
         let bytes = libc::malloc(result_len);
         std::ptr::copy(result_ptr, bytes as *mut u8, result_len);
+        println!("rust ptr: {:X?}, len: {}", bytes, result_len);
         ByteBufferReturn {
             len: result_len,
             data: bytes as *mut u8,

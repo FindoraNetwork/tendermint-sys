@@ -5,6 +5,7 @@ package main
 #include<stdint.h>
 #include<stddef.h>
 #include<stdlib.h>
+#include <stdio.h>
 
 typedef struct ByteBuffer {
     int64_t len;
@@ -23,14 +24,16 @@ ByteBufferReturn call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, int32_t 
     return fp(bytes, index, userdata);
 }
 
-void c_free(uint8_t *p) {
-    free(p);
-}
+// void c_free(uint8_t *p) {
+    // printf("%x", (int)p);
+    // free(p);
+// }
 */
 import "C"
 import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"unsafe"
+    "fmt"
     // "reflect"
 )
 
@@ -64,13 +67,16 @@ func (a ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
     // rdhdr.Data = uintptr(unsafe.Pointer(bb.data))
     // rdhdr.Len = int(bb.len)
 //
+    fmt.Println("ptr: %X, len: %d", bb.data, bb.len)
     resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
 	resp := abcitypes.Response{}
 	resp.Unmarshal(resp_data)
 
     resp_data = nil
 
-    C.c_free(bb.data)
+    // C.c_free(bb.data)
+
+    defer C.free(unsafe.Pointer(bb.data))
 	return resp
 }
 
