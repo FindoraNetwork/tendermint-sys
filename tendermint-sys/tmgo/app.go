@@ -33,7 +33,6 @@ import "C"
 import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"unsafe"
-    "fmt"
     // "reflect"
 )
 
