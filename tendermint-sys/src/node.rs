@@ -94,9 +94,11 @@ impl Node {
     where
         A: Application + 'static,
     {
-        // local config
-        let config_str = String::from(config);
-        let config_bytes = ByteBuffer::from_vec(config_str.into_bytes());
+        let mut config_str = String::from(config);
+        let config_bytes = ByteBufferReturn {
+            len: config_str.len(),
+            data: config_str.as_mut_ptr(),
+        };
 
         let mut apps = APPLICATIONS.lock().expect("lock faild");
         let index = INDEX.fetch_add(1, Ordering::SeqCst);
@@ -122,8 +124,11 @@ impl Node {
     where
         A: SyncApplication + 'static,
     {
-        let config_str = String::from(config);
-        let config_bytes = ByteBuffer::from_vec(config_str.into_bytes());
+        let mut config_str = String::from(config);
+        let config_bytes = ByteBufferReturn {
+            len: config_str.len(),
+            data: config_str.as_mut_ptr(),
+        };
 
         let mut apps = APPLICATIONS.lock().expect("lock faild");
         let index = INDEX.fetch_add(1, Ordering::SeqCst);
