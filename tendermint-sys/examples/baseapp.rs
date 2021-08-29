@@ -1,3 +1,6 @@
+use std::sync::mpsc::channel;
+use std::thread;
+
 use tendermint_sys::Application;
 use tendermint_sys::Node;
 use tm_protos::abci::{RequestBeginBlock, RequestInfo, ResponseBeginBlock, ResponseInfo};
@@ -20,10 +23,30 @@ impl Application for App {
     }
 }
 
+fn run(node: Node) {
+    node.start().unwrap();
+
+    std::thread::park();
+
+    node.stop().unwrap();
+}
+
 fn main() {
     env_logger::init();
     let app = App { counter: 0 };
     let node = Node::new("./target/tendermint/config/config.toml", app).unwrap();
-    node.start().unwrap();
-    loop {}
+    let thread = thread::Builder::new()
+        .spawn(|| run(node))
+        .unwrap();
+
+    let (tx, rx) = channel();
+
+    ctrlc::set_handler(move || {
+        tx.send(()).unwrap();
+    }).unwrap();
+
+    rx.recv().unwrap();
+
+    thread.thread().unpark();
+    thread.join().unwrap();
 }

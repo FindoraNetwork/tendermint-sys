@@ -6,9 +6,9 @@
 
 use crate::raw::{ByteBufferReturn, NodeIndex, new_node, start_node, stop_node};
 use crate::{Error, Result};
-use ffi_support::ByteBuffer;
 use lazy_static::lazy_static;
 use prost::Message;
+use std::slice::from_raw_parts;
 use std::{
     collections::BTreeMap,
     ffi::c_void,
@@ -57,11 +57,13 @@ fn call_abci(index: i32, req: Request) -> Response {
 }
 
 extern "C" fn abci_callback(
-    argument: ByteBuffer,
+    argument: ByteBufferReturn,
     index: i32,
     _userdata: *mut c_void,
 ) -> ByteBufferReturn {
-    let abci_req_bytes = argument.as_slice();
+    let abci_req_bytes = unsafe {
+        from_raw_parts(argument.data, argument.len)
+    };
     let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
     log::debug!("recv req: {:?}", abci_req);
     let resp = call_abci(index, abci_req);
@@ -72,10 +74,10 @@ extern "C" fn abci_callback(
     let result_len = r_bytes.len();
     let result_ptr = r_bytes.as_ptr();
 
-
     unsafe {
         let bytes = libc::malloc(result_len);
         std::ptr::copy(result_ptr, bytes as *mut u8, result_len);
+        drop(resp);
         ByteBufferReturn {
             len: result_len,
             data: bytes as *mut u8,

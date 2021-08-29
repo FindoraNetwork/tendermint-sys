@@ -2,7 +2,6 @@
 //!
 //! This module write by hand, no use bindgen.
 
-use ffi_support::ByteBuffer;
 use std::ffi::c_void;
 
 #[repr(C)]
@@ -19,7 +18,7 @@ pub type NodeIndex = i32;
 /// This function pointer will called when abci messages are trigged.
 ///
 /// ABCI Request and Response are encode by protobuf.
-pub type AbciCallbackPtr = extern "C" fn(ByteBuffer, NodeIndex, *mut c_void) -> ByteBufferReturn;
+pub type AbciCallbackPtr = extern "C" fn(ByteBufferReturn, NodeIndex, *mut c_void) -> ByteBufferReturn;
 
 extern "C" {
     /// Creat a tendermint node from configure.
@@ -56,7 +55,7 @@ extern "C" {
     /// If StatusCode == -2, meaning node key init failed.
     /// If StatusCode == -3, meaning public key get failed.
     /// If StatusCode == -4, meaning genesis save failed.
-    pub fn init_config(config_bytes: ByteBuffer) -> i32;
+    pub fn init_config(config_bytes: ByteBufferReturn) -> i32;
 }
 
 // #[no_mangle]
