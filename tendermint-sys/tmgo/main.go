@@ -23,10 +23,11 @@ import (
 /*
 #cgo CFLAGS: -g -Wall
 #include<stdint.h>
-typedef struct ByteBuffer {
-    int64_t len;
+#include<stddef.h>
+typedef struct ByteBufferReturn {
+    size_t len;
     uint8_t *data;
-} ByteBuffer;
+} ByteBufferReturn;
 */
 import "C"
 
@@ -35,8 +36,9 @@ var index int
 var nodes = make(map[int]*nm.Node)
 
 //export init_config
-func init_config(config_c C.ByteBuffer) C.int32_t {
-	configFile := string(C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len)))
+func init_config(config_c C.ByteBufferReturn) C.int32_t {
+    cgo_connfig := C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len))
+	configFile := string(cgo_connfig)
 	config := cfg.DefaultConfig()
 
 	cfg.WriteConfigFile(configFile, config)
@@ -102,8 +104,9 @@ func init_config(config_c C.ByteBuffer) C.int32_t {
 }
 
 //export new_node
-func new_node(config_c C.ByteBuffer, abci_ptr unsafe.Pointer, userdata unsafe.Pointer) C.int32_t {
-	configFile := string(C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len)))
+func new_node(config_c C.ByteBufferReturn, abci_ptr unsafe.Pointer, userdata unsafe.Pointer) C.int32_t {
+    cgo_connfig := C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len))
+	configFile := string(cgo_connfig)
 	config := cfg.DefaultConfig()
 
 	root_dir := filepath.Dir(filepath.Dir(configFile))

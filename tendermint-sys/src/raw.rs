@@ -30,7 +30,7 @@ extern "C" {
     /// If NodeIndex == -2, meaning load node key from configure file failed.
     /// If NodeIndex == -3, meaning node crate failed.
     pub fn new_node(
-        config_bytes: ByteBuffer,
+        config_bytes: ByteBufferReturn,
         abci_ptr: AbciCallbackPtr,
         userdata: *mut c_void,
     ) -> i32;
