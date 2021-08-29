@@ -67,7 +67,6 @@ func (a ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
     // rdhdr.Data = uintptr(unsafe.Pointer(bb.data))
     // rdhdr.Len = int(bb.len)
 //
-    fmt.Println("ptr: %X, len: %d", bb.data, bb.len)
     resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
 	resp := abcitypes.Response{}
 	resp.Unmarshal(resp_data)

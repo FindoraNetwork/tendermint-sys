@@ -76,7 +76,6 @@ extern "C" fn abci_callback(
     unsafe {
         let bytes = libc::malloc(result_len);
         std::ptr::copy(result_ptr, bytes as *mut u8, result_len);
-        println!("rust ptr: {:X?}, len: {}", bytes, result_len);
         ByteBufferReturn {
             len: result_len,
             data: bytes as *mut u8,
