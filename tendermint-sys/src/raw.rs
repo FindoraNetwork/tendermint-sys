@@ -31,7 +31,7 @@ extern "C" {
     /// If NodeIndex == -3, meaning node crate failed.
     /// If NodeIndex == -4, meaning logger init failed.
     pub fn new_node(
-        config_bytes: ByteBuffer,
+        config_bytes: ByteBufferReturn,
         abci_ptr: AbciCallbackPtr,
         userdata: *mut c_void,
     ) -> i32;

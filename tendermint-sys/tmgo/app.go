@@ -31,6 +31,7 @@ import "C"
 import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"unsafe"
+    "reflect"
 )
 
 type ABCFApplication struct {
@@ -53,9 +54,21 @@ func (a ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
 	arg.data = (*C.uchar)(&data[0])
 
 	bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
-	resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
+
+    data = nil
+
+    var resp_data []byte
+
+    rdhdr := (*reflect.SliceHeader)(unsafe.Pointer(&resp_data))
+
+    rdhdr.Data = uintptr(unsafe.Pointer(bb.data))
+    rdhdr.Len = int(bb.len)
+
+	// resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
 	resp := abcitypes.Response{}
 	resp.Unmarshal(resp_data)
+
+    resp_data = nil
 
     C.c_free(bb.data)
 	return resp
