@@ -57,14 +57,14 @@ func (a ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
 
     data = nil
 
-    var resp_data []byte
-
-    rdhdr := (*reflect.SliceHeader)(unsafe.Pointer(&resp_data))
-
-    rdhdr.Data = uintptr(unsafe.Pointer(bb.data))
-    rdhdr.Len = int(bb.len)
-
-	// resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
+//     var resp_data []byte
+    //
+    // rdhdr := (*reflect.SliceHeader)(unsafe.Pointer(&resp_data))
+    //
+    // rdhdr.Data = uintptr(unsafe.Pointer(bb.data))
+    // rdhdr.Len = int(bb.len)
+//
+    resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
 	resp := abcitypes.Response{}
 	resp.Unmarshal(resp_data)
 
