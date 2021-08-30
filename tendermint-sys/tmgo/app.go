@@ -59,12 +59,15 @@ func start_call_abci(a *ABCFApplication) {
         data, _ := req.Marshal()
 
         var arg C.ByteBufferReturn
+        argument := C.CBytes(data)
+
         arg.len = C.size_t(len(data))
-        arg.data = (*C.uchar)(&data[0])
+        arg.data = (*C.uchar)(argument)
 
         bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
 
         data = nil
+        C.free(argument)
 
         resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
         resp := abcitypes.Response{}
