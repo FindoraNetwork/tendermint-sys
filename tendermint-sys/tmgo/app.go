@@ -32,6 +32,7 @@ import "C"
 import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"unsafe"
+    // "fmt"
     // // "reflect"
 )
 
@@ -39,51 +40,72 @@ type ABCFApplication struct {
 	abci_ptr unsafe.Pointer
 	index    int
 	userdata unsafe.Pointer
-    send     chan abcitypes.Request
-    recv     chan abcitypes.Response
+    // send     chan abcitypes.Reques// t
+    // recv     chan abcitypes.Response
 }
 
 var _ abcitypes.Application = (*ABCFApplication)(nil)
 
 func NewABCFApplication(abci_ptr unsafe.Pointer, index int, userdata unsafe.Pointer) *ABCFApplication {
-    send := make(chan abcitypes.Request)
-    recv := make(chan abcitypes.Response)
-    app := ABCFApplication{abci_ptr, index, userdata, send, recv}
-    go start_call_abci(&app)
+    // send := make(chan abcitypes.Request)
+    // recv := make(chan abcitypes.Response)
+    // app := ABCFApplication{abci_ptr, index, userdata, send, recv}
+    app := ABCFApplication{abci_ptr, index, userdata}
+    // go start_call_abci(&app)
     return &app
 }
 
-func start_call_abci(a *ABCFApplication) {
-    for {
-        req := <-a.send
-        data, _ := req.Marshal()
-
-        var arg C.ByteBufferReturn
-        argument := C.CBytes(data)
-
-        arg.len = C.size_t(len(data))
-        arg.data = (*C.uchar)(argument)
-
-        bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
-
-        data = nil
-        C.free(argument)
-
-        resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
-        resp := abcitypes.Response{}
-        resp.Unmarshal(resp_data)
-
-        resp_data = nil
-
-        C.c_free(bb.data)
-
-        a.recv <- resp
-    }
-}
+// func start_call_abci(a *ABCFApplication) {
+    // index := 1
+    // for {
+    //     index += 1
+    //     req := <-a.send
+    //     data, _ := req.Marshal()
+    //
+    //     var arg C.ByteBufferReturn
+    //     argument := C.CBytes(data)
+    //
+    //     arg.len = C.size_t(len(data))
+    //     arg.data = (*C.uchar)(argument)
+    //
+    //     fmt.Println("call index", index)
+    //     bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
+    //
+    //     fmt.Println("call index", index)
+    //     data = nil
+    //
+    //     resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
+    //     resp := abcitypes.Response{}
+    //     resp.Unmarshal(resp_data)
+    //
+    //     resp_data = nil
+    //
+    //     C.c_free(bb.data)
+    //
+    //     a.recv <- resp
+    // }
+// }
 
 func (a *ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
-    a.send <- *req
-    resp := <-a.recv
+    data, _ := req.Marshal()
+
+    var arg C.ByteBufferReturn
+    argument := C.CBytes(data)
+
+    arg.len = C.size_t(len(data))
+    arg.data = (*C.uchar)(argument)
+
+    bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
+
+    data = nil
+
+    resp_data := C.GoBytes(unsafe.Pointer(bb.data), C.int(bb.len))
+    resp := abcitypes.Response{}
+    resp.Unmarshal(resp_data)
+
+    resp_data = nil
+
+    C.c_free(bb.data)
     return resp
 }
 

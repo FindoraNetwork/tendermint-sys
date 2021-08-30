@@ -34,6 +34,8 @@ lazy_static! {
 lazy_static! {
     static ref APPLICATIONS: Mutex<BTreeMap<i32, Box<dyn SyncApplication>>> =
         Mutex::new(BTreeMap::new());
+    static ref SENDERS: Mutex<Option<std::sync::mpsc::Sender<Request>>> = Mutex::new(None);
+    static ref RECEIVER: Mutex<Option<std::sync::mpsc::Receiver<Response>>> = Mutex::new(None);
 }
 
 lazy_static! {
@@ -58,15 +60,28 @@ fn call_abci(index: i32, req: Request) -> Response {
 
 extern "C" fn abci_callback(
     argument: ByteBufferReturn,
-    index: i32,
+    _index: i32,
     _userdata: *mut c_void,
 ) -> ByteBufferReturn {
     let abci_req_bytes = unsafe {
         from_raw_parts(argument.data, argument.len)
     };
+    
     let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
+
+    unsafe {
+        libc::free(argument.data as *mut c_void);
+    }
     log::debug!("recv req: {:?}", abci_req);
-    let resp = call_abci(index, abci_req);
+
+    let sender = SENDERS.lock().expect("lock failed");
+    sender.as_ref().unwrap().send(abci_req).expect("send failed");
+    drop(sender);
+
+    let receiver = RECEIVER.lock().expect("lock failed");
+    let resp = receiver.as_ref().unwrap().recv().expect("recv failed");
+    drop(receiver);
+
     log::debug!("send resp: {:?}", resp);
     let mut r_bytes = Vec::new();
     resp.encode(&mut r_bytes).unwrap();
@@ -139,6 +154,25 @@ impl Node {
         // release lock.
         drop(apps);
 
+        let (req_tx, req_rx) = std::sync::mpsc::channel();
+        let (resp_tx, resp_rx) = std::sync::mpsc::channel();
+
+        let mut sender = SENDERS.lock().expect("lock failed");
+        *sender = Some(req_tx);
+        drop(sender);
+
+        let mut receiver = RECEIVER.lock().expect("lock failed");
+        *receiver = Some(resp_rx);
+        drop(receiver);
+
+        std::thread::spawn(move || {
+            loop {
+                let req = req_rx.recv().expect("receive failed");
+                let resp = call_abci(index, req);
+                resp_tx.send(resp).expect("send failed");
+            }
+        });
+
         let ffi_res = unsafe { new_node(config_bytes, abci_callback, null_mut()) };
         if ffi_res < 0 {
             return Err(Error::from_new_node_error(ffi_res));
@@ -146,7 +180,9 @@ impl Node {
 
         assert_eq!(ffi_res, index);
 
-        Ok(Self { index })
+        Ok(Self {
+            index,
+        })
     }
 }
 

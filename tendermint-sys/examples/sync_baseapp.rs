@@ -1,6 +1,6 @@
 use tendermint_sys::{Node, SyncApplication};
 use tm_protos::abci::{RequestBeginBlock, RequestInfo, ResponseBeginBlock, ResponseInfo};
-use std::{sync::mpsc::channel, thread};
+use std::{path::Path, sync::mpsc::channel, thread};
 
 struct App {
     pub counter: u64,
@@ -29,28 +29,29 @@ fn run(node: Node) {
 
 fn main() {
     env_logger::init();
-    let path = Path::new("./target/tendermint");
-    if !path.exists() {
-        tendermint_sys::init_home(home)?;
+    let home = Path::new("./target/tendermint");
+    if !home.exists() {
+        tendermint_sys::init_home("./target/tendermint").unwrap();
     }
 
     let app = App { counter: 0 };
     let node = Node::new("./target/tendermint/config/config.toml", app).unwrap();
-    let thread = thread::Builder::new()
-        .spawn(|| run(node))
-        .unwrap();
-
-    let (tx, rx) = channel();
-
-    ctrlc::set_handler(move || {
-        tx.send(()).unwrap();
-    }).unwrap();
-
-    rx.recv().unwrap();
-
-    thread.thread().unpark();
-
-    println!("asdasasd");
-
-    thread.join().unwrap();
+    run(node);
+    // let thread = thread::Builder::new()
+    //     .spawn(|| run(node))
+    //     .unwrap();
+    //
+    // let (tx, rx) = channel();
+    //
+    // ctrlc::set_handler(move || {
+    //     tx.send(()).unwrap();
+    // }).unwrap();
+    //
+    // rx.recv().unwrap();
+//
+//     thread.thread().unpark();
+    //
+    // println!("asdasasd");
+    //
+//     thread.join().unwrap();
 }
