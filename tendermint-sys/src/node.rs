@@ -14,13 +14,7 @@ use std::sync::Mutex;
 use tm_protos::abci::{Request, Response};
 
 #[cfg(feature = "sync")]
-use crate::sync_dispatch;
-
-#[cfg(feature = "sync")]
 use tm_abci::SyncApplication;
-
-#[cfg(feature = "async")]
-use crate::dispatch;
 
 #[cfg(feature = "async")]
 use tm_abci::Application;
@@ -44,7 +38,7 @@ fn call_abci(index: i32, req: Request) -> Response {
     let mut apps = APPLICATIONS.lock().expect("lock faild");
     log::debug!("index from go is: {}", index);
     let app = apps.get_mut(&index).expect("index from go error");
-    smol::block_on(async { dispatch(app.as_mut(), req).await })
+    smol::block_on(async { app.dispatch(req).await })
 }
 
 #[cfg(feature = "sync")]
@@ -52,7 +46,7 @@ fn call_abci(index: i32, req: Request) -> Response {
     let mut apps = APPLICATIONS.lock().expect("lock faild");
     log::debug!("index from go is: {}", index);
     let app = apps.get_mut(&index).expect("index from go error");
-    sync_dispatch(app.as_mut(), req)
+    app.sync_dispatch(req)
 }
 
 extern "C" fn abci_callback(
