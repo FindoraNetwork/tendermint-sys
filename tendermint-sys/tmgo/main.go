@@ -6,7 +6,7 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
     tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
+	// tmflags "github.com/tendermint/tendermint/libs/cli/flags"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
@@ -48,12 +48,12 @@ func init_config(config_c C.ByteBufferReturn) C.int32_t {
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-	var err error
-	logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
-		return -1
-	}
+	// var err error
+	// logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel())
+	// if err != nil {
+		// fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
+		// return -1
+	// }
 
     // init config
     privValKeyFile := config.PrivValidatorKeyFile()
@@ -134,12 +134,12 @@ func new_node(config_c C.ByteBufferReturn, abci_ptr unsafe.Pointer, userdata uns
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-	var err error
-	logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
-		return -4
-	}
+   //  var err error
+	// logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel())
+	// if err != nil {
+	//     fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
+	//     return -4
+	// }
 
 	pv := privval.LoadOrGenFilePV(
 		config.PrivValidatorKeyFile(),

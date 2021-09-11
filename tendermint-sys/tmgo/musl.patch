@@ -1,0 +1,191 @@
+diff --git a/src/runtime/cgo.go b/src/runtime/cgo.go
+index 395d54a66e..198a0eb326 100644
+--- a/src/runtime/cgo.go
++++ b/src/runtime/cgo.go
+@@ -12,6 +12,7 @@ import "unsafe"
+ 
+ //go:linkname _cgo_init _cgo_init
+ //go:linkname _cgo_thread_start _cgo_thread_start
++//go:linkname _cgo_sys_lib_args_valid _cgo_sys_lib_args_valid
+ //go:linkname _cgo_sys_thread_create _cgo_sys_thread_create
+ //go:linkname _cgo_notify_runtime_init_done _cgo_notify_runtime_init_done
+ //go:linkname _cgo_callers _cgo_callers
+@@ -21,6 +22,7 @@ import "unsafe"
+ var (
+ 	_cgo_init                     unsafe.Pointer
+ 	_cgo_thread_start             unsafe.Pointer
++	_cgo_sys_lib_args_valid       unsafe.Pointer
+ 	_cgo_sys_thread_create        unsafe.Pointer
+ 	_cgo_notify_runtime_init_done unsafe.Pointer
+ 	_cgo_callers                  unsafe.Pointer
+diff --git a/src/runtime/cgo/callbacks.go b/src/runtime/cgo/callbacks.go
+index cd8b795387..452312d291 100644
+--- a/src/runtime/cgo/callbacks.go
++++ b/src/runtime/cgo/callbacks.go
+@@ -58,6 +58,14 @@ var _cgo_init = &x_cgo_init
+ var x_cgo_thread_start byte
+ var _cgo_thread_start = &x_cgo_thread_start
+ 
++// Determines if the argc / argv passed to the library initialization functions
++// are valid.
++//go:cgo_import_static x_cgo_sys_lib_args_valid
++//go:linkname x_cgo_sys_lib_args_valid x_cgo_sys_lib_args_valid
++//go:linkname _cgo_sys_lib_args_valid _cgo_sys_lib_args_valid
++var x_cgo_sys_lib_args_valid byte
++var _cgo_sys_lib_args_valid = &x_cgo_sys_lib_args_valid
++
+ // Creates a new system thread without updating any Go state.
+ //
+ // This method is invoked during shared library loading to create a new OS
+diff --git a/src/runtime/cgo/gcc_libinit.c b/src/runtime/cgo/gcc_libinit.c
+index 3304d95fdf..e019ed8b02 100644
+--- a/src/runtime/cgo/gcc_libinit.c
++++ b/src/runtime/cgo/gcc_libinit.c
+@@ -7,6 +7,7 @@
+ 
+ #include <pthread.h>
+ #include <errno.h>
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h> // strerror
+@@ -21,6 +22,20 @@ static int runtime_init_done;
+ // The context function, used when tracing back C calls into Go.
+ static void (*cgo_context_function)(struct context_arg*);
+ 
++// Detect if using glibc
++int
++x_cgo_sys_lib_args_valid()
++{
++	// The ELF gABI doesn't require an argc / argv to be passed to the functions
++	// in the DT_INIT_ARRAY. However, glibc always does.
++	// Ignore uClibc masquerading as glibc.
++#if defined(__GLIBC__) && !defined(__UCLIBC__)
++	return 1;
++#else
++	return 0;
++#endif
++}
++
+ void
+ x_cgo_sys_thread_create(void* (*func)(void*), void* arg) {
+ 	pthread_t p;
+diff --git a/src/runtime/cgo/gcc_libinit_windows.c b/src/runtime/cgo/gcc_libinit_windows.c
+index 2732248bdc..1d30c27423 100644
+--- a/src/runtime/cgo/gcc_libinit_windows.c
++++ b/src/runtime/cgo/gcc_libinit_windows.c
+@@ -51,6 +51,11 @@ _cgo_maybe_run_preinit() {
+ 	 }
+ }
+ 
++int
++x_cgo_sys_lib_args_valid() {
++	return 1;
++}
++
+ void
+ x_cgo_sys_thread_create(void (*func)(void*), void* arg) {
+ 	uintptr_t thandle;
+diff --git a/src/runtime/os_linux.go b/src/runtime/os_linux.go
+index 058c7daf9c..984729b5c8 100644
+--- a/src/runtime/os_linux.go
++++ b/src/runtime/os_linux.go
+@@ -196,19 +196,29 @@ func mincore(addr unsafe.Pointer, n uintptr, dst *byte) int32
+ func sysargs(argc int32, argv **byte) {
+ 	n := argc + 1
+ 
+-	// skip over argv, envp to get to auxv
+-	for argv_index(argv, n) != nil {
+-		n++
++	argsValid := true
++	if islibrary || isarchive {
++		if !sysLibArgsValid {
++			argsValid = false
++		}
+ 	}
+ 
+-	// skip NULL separator
+-	n++
++	if argsValid {
++		// skip over argv, envp to get to auxv
++		for argv_index(argv, n) != nil {
++			n++
++		}
++
++		// skip NULL separator
++		n++
+ 
+-	// now argv+n is auxv
+-	auxv := (*[1 << 28]uintptr)(add(unsafe.Pointer(argv), uintptr(n)*sys.PtrSize))
+-	if sysauxv(auxv[:]) != 0 {
+-		return
++		// now argv+n is auxv
++		auxv := (*[1 << 28]uintptr)(add(unsafe.Pointer(argv), uintptr(n)*sys.PtrSize))
++		if sysauxv(auxv[:]) != 0 {
++			return
++		}
+ 	}
++
+ 	// In some situations we don't get a loader-provided
+ 	// auxv, such as when loaded as a library on Android.
+ 	// Fall back to /proc/self/auxv.
+@@ -346,6 +356,13 @@ func goenvs() {
+ //go:nosplit
+ //go:nowritebarrierrec
+ func libpreinit() {
++	if _cgo_sys_lib_args_valid != nil {
++		ret := asmcgocall(_cgo_sys_lib_args_valid, nil)
++		if ret != 1 {
++			sysLibArgsValid = false
++		}
++	}
++
+ 	initsig(true)
+ }
+ 
+diff --git a/src/runtime/runtime1.go b/src/runtime/runtime1.go
+index 30b7044bff..f56ebd3a19 100644
+--- a/src/runtime/runtime1.go
++++ b/src/runtime/runtime1.go
+@@ -55,6 +55,12 @@ var (
+ // nosplit for use in linux startup sysargs
+ //go:nosplit
+ func argv_index(argv **byte, i int32) *byte {
++	if islibrary || isarchive {
++		if !sysLibArgsValid {
++			return nil
++		}
++	}
++
+ 	return *(**byte)(add(unsafe.Pointer(argv), uintptr(i)*sys.PtrSize))
+ }
+ 
+@@ -68,6 +74,13 @@ func goargs() {
+ 	if GOOS == "windows" {
+ 		return
+ 	}
++	if islibrary || isarchive {
++		if !sysLibArgsValid {
++           argslice = []string {"faker"}
++			return
++		}
++	}
++
+ 	argslice = make([]string, argc)
+ 	for i := int32(0); i < argc; i++ {
+ 		argslice[i] = gostringnocopy(argv_index(argv, i))
+diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
+index 109f0da131..e452e86c9f 100644
+--- a/src/runtime/runtime2.go
++++ b/src/runtime/runtime2.go
+@@ -1104,5 +1104,10 @@ var (
+ 	isarchive bool // -buildmode=c-archive
+ )
+ 
++// when using -buildmode=c-archive or -buildmode=c-shared on linux
++// we have to first make sure that glibc is being used or else
++// we cannot rely on argc/argv/auxv to be accurate
++var sysLibArgsValid bool = true
++
+ // Must agree with cmd/internal/objabi.Framepointer_enabled.
+ const framepointer_enabled = GOARCH == "amd64" || GOARCH == "arm64" && (GOOS == "linux" || GOOS == "darwin" || GOOS == "ios")
