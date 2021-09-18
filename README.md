@@ -2,7 +2,17 @@
 
 > Wrap tendermint Go version as Rust crate. You can manage tendermint node in Rust.
 
+![GitHub top language](https://img.shields.io/github/languages/top/FindoraNetwork/tendermint-sys)
+![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/FindoraNetwork/tendermint-sys?filename=tendermint-sys%2Ftmgo%2Fgo.mod)
 ![Lines of code](https://img.shields.io/tokei/lines/github/FindoraNetwork/tendermint-sys)
+
+## Packages
+
+| name | description | crates.io | docs.rs |
+| - | - | - | - |
+| tendermint-sys | use tendermint in Rust | ![Crates.io](https://img.shields.io/crates/v/tendermint-sys) | ![docs.rs](https://img.shields.io/docsrs/tendermint-sys) |
+| td-abci | ABCI interface in `no_std` | ![Crates.io](https://img.shields.io/crates/v/td-abci) | ![docs.rs](https://img.shields.io/docsrs/td-abci) |
+| td-protos | ABCI types in `no_std` | ![Crates.io](https://img.shields.io/crates/v/td-protos) | ![docs.rs](https://img.shields.io/docsrs/td-protos) |
 
 ## Features
 
