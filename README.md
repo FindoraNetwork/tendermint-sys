@@ -2,19 +2,18 @@
 
 > Wrap tendermint Go version as Rust crate. You can manage tendermint node in Rust.
 
+![Lines of code](https://img.shields.io/tokei/lines/github/FindoraNetwork/tendermint-sys)
+
 ## Features
 
-> Basic work, need more testing.
-
-- [X] Export tendermint(v0.34) node api using `CGO`.
-  - [X] Compile tendermint as static library.
-- [X] Wrap tendermint static library using Rust FFI.
-- [X] Write `build.rs` to use as crate.
-- [X] Make basic test.
-- [X] Add async support.
-- [X] Add api to init tendermint.(instead tendermint offical binary).
-- [X] Regenerate abci proto for `no_std`.
-- [X] Add `no_std` protos to tendermint-sys.
+- Export tendermint(v0.34) node api using `CGO`.
+  - Compile tendermint as static library.
+- Wrap tendermint static library using Rust FFI.
+- Write `build.rs` to use as crate.
+- Async support.
+- Add api to init tendermint.(instead tendermint offical binary).
+- Abci types for `no_std`.
+- Add `no_std` protos to tendermint-sys.
 
 ## Status
 
