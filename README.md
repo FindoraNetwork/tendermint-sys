@@ -42,7 +42,7 @@ Supported platform:
 First, inital tendermint configure file.
 
 ``` bash
-$ TMHOME="/tmp/example" tendermint init
+cargo run --example init
 ```
 
 Clone this repo.
