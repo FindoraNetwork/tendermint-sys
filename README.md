@@ -4,7 +4,8 @@
 
 ![GitHub top language](https://img.shields.io/github/languages/top/FindoraNetwork/tendermint-sys)
 ![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/FindoraNetwork/tendermint-sys?filename=tendermint-sys%2Ftmgo%2Fgo.mod)
-![support](https://img.shields.io/badge/linux--gnu-support-success)
+![support](https://img.shields.io/badge/linux--gnu-support-success))
+![support](https://img.shields.io/badge/MacOS-support-success)
 ![Lines of code](https://img.shields.io/tokei/lines/github/FindoraNetwork/tendermint-sys)
 ![GitHub](https://img.shields.io/github/license/FindoraNetwork/tendermint-sys)
 
