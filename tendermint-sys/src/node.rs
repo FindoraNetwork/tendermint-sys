@@ -4,14 +4,15 @@
 
 use crate::raw::{ByteBufferReturn, NodeIndex, new_node, start_node, stop_node};
 use crate::{Error, Result};
-use ffi_support::ByteBuffer;
 use prost::Message;
 use std::collections::BTreeMap;
 use std::ffi::c_void;
 use std::ptr::null_mut;
+use std::slice::from_raw_parts;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::Mutex;
 use tm_protos::abci::{Request, Response};
+
 
 #[cfg(feature = "sync")]
 use tm_abci::SyncApplication;
@@ -31,6 +32,8 @@ lazy_static::lazy_static! {
 
 lazy_static::lazy_static! {
     static ref INDEX: AtomicI32 = AtomicI32::new(1);
+    static ref SENDERS: Mutex<Option<std::sync::mpsc::Sender<Request>>> = Mutex::new(None);
+    static ref RECEIVER: Mutex<Option<std::sync::mpsc::Receiver<Response>>> = Mutex::new(None);
 }
 
 #[cfg(feature = "async")]
@@ -50,15 +53,29 @@ fn call_abci(index: i32, req: Request) -> Response {
 }
 
 extern "C" fn abci_callback(
-    argument: ByteBuffer,
-    index: i32,
+    argument: ByteBufferReturn,
+    _index: i32,
     _userdata: *mut c_void,
 ) -> ByteBufferReturn {
-    let abci_req_bytes = argument.as_slice();
+    let abci_req_bytes = unsafe {
+        from_raw_parts(argument.data, argument.len)
+    };
+
     let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
 
+    unsafe {
+        libc::free(argument.data as *mut c_void);
+    }
     log::debug!("recv req: {:?}", abci_req);
-    let resp = call_abci(index, abci_req);
+
+    let sender = SENDERS.lock().expect("lock failed");
+    sender.as_ref().unwrap().send(abci_req).expect("send failed");
+    drop(sender);
+
+    let receiver = RECEIVER.lock().expect("lock failed");
+    let resp = receiver.as_ref().unwrap().recv().expect("recv failed");
+    drop(receiver);
+
     log::debug!("send resp: {:?}", resp);
     let mut r_bytes = Vec::new();
     resp.encode(&mut r_bytes).unwrap();
@@ -69,6 +86,7 @@ extern "C" fn abci_callback(
     unsafe {
         let bytes = libc::malloc(result_len);
         std::ptr::copy(result_ptr, bytes as *mut u8, result_len);
+        drop(resp);
         ByteBufferReturn {
             len: result_len,
             data: bytes as *mut u8,
@@ -101,6 +119,25 @@ impl Node {
         // release lock.
         drop(apps);
 
+        let (req_tx, req_rx) = std::sync::mpsc::channel();
+        let (resp_tx, resp_rx) = std::sync::mpsc::channel();
+
+        let mut sender = SENDERS.lock().expect("lock failed");
+        *sender = Some(req_tx);
+        drop(sender);
+
+        let mut receiver = RECEIVER.lock().expect("lock failed");
+        *receiver = Some(resp_rx);
+        drop(receiver);
+
+        std::thread::spawn(move || {
+            loop {
+                let req = req_rx.recv().expect("receive failed");
+                let resp = call_abci(index, req);
+                resp_tx.send(resp).expect("send failed");
+            }
+        });
+
         let ffi_res = unsafe { new_node(config_bytes, abci_callback, null_mut()) };
         if ffi_res < 0 {
             return Err(Error::from_new_node_error(ffi_res));
@@ -132,6 +169,25 @@ impl Node {
         apps.insert(index, Box::new(application));
         // release lock.
         drop(apps);
+
+        let (req_tx, req_rx) = std::sync::mpsc::channel();
+        let (resp_tx, resp_rx) = std::sync::mpsc::channel();
+
+        let mut sender = SENDERS.lock().expect("lock failed");
+        *sender = Some(req_tx);
+        drop(sender);
+
+        let mut receiver = RECEIVER.lock().expect("lock failed");
+        *receiver = Some(resp_rx);
+        drop(receiver);
+
+        std::thread::spawn(move || {
+            loop {
+                let req = req_rx.recv().expect("receive failed");
+                let resp = call_abci(index, req);
+                resp_tx.send(resp).expect("send failed");
+            }
+        });
 
         let ffi_res = unsafe { new_node(config_bytes, abci_callback, null_mut()) };
         if ffi_res < 0 {

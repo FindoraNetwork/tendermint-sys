@@ -1,10 +1,12 @@
-use crate::{raw::init_config, Error, Result};
-use ffi_support::ByteBuffer;
+use crate::{Error, Result, raw::{ByteBufferReturn, init_config}};
 use std::{fs, path::Path};
 
 fn new_config(path: &str) -> Result<()> {
-    let config_str = String::from(path);
-    let config_bytes = ByteBuffer::from_vec(config_str.into_bytes());
+    let mut config_str = String::from(path);
+    let config_bytes = ByteBufferReturn {
+        len: config_str.len(),
+        data: config_str.as_mut_ptr(),
+    };
 
     let code = unsafe { init_config(config_bytes) };
     if code == 0 {
