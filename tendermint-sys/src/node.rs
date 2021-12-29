@@ -2,7 +2,7 @@
 //!
 //! Create, start or stop tendermint node.
 
-use crate::raw::{ByteBufferReturn, NodeIndex, new_node, start_node, stop_node};
+use crate::raw::{new_node, start_node, stop_node, ByteBufferReturn, NodeIndex};
 use crate::{Error, Result};
 use prost::Message;
 use std::collections::BTreeMap;
@@ -12,7 +12,6 @@ use std::slice::from_raw_parts;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::Mutex;
 use tm_protos::abci::{Request, Response};
-
 
 #[cfg(feature = "sync")]
 use tm_abci::SyncApplication;
@@ -57,9 +56,7 @@ extern "C" fn abci_callback(
     _index: i32,
     _userdata: *mut c_void,
 ) -> ByteBufferReturn {
-    let abci_req_bytes = unsafe {
-        from_raw_parts(argument.data, argument.len)
-    };
+    let abci_req_bytes = unsafe { from_raw_parts(argument.data, argument.len) };
 
     let abci_req: Request = Message::decode(abci_req_bytes).unwrap();
 
@@ -69,7 +66,11 @@ extern "C" fn abci_callback(
     log::debug!("recv req: {:?}", abci_req);
 
     let sender = SENDERS.lock().expect("lock failed");
-    sender.as_ref().unwrap().send(abci_req).expect("send failed");
+    sender
+        .as_ref()
+        .unwrap()
+        .send(abci_req)
+        .expect("send failed");
     drop(sender);
 
     let receiver = RECEIVER.lock().expect("lock failed");
@@ -130,12 +131,10 @@ impl Node {
         *receiver = Some(resp_rx);
         drop(receiver);
 
-        std::thread::spawn(move || {
-            loop {
-                let req = req_rx.recv().expect("receive failed");
-                let resp = call_abci(index, req);
-                resp_tx.send(resp).expect("send failed");
-            }
+        std::thread::spawn(move || loop {
+            let req = req_rx.recv().expect("receive failed");
+            let resp = call_abci(index, req);
+            resp_tx.send(resp).expect("send failed");
         });
 
         let ffi_res = unsafe { new_node(config_bytes, abci_callback, null_mut()) };
@@ -181,19 +180,16 @@ impl Node {
         *receiver = Some(resp_rx);
         drop(receiver);
 
-        std::thread::spawn(move || {
-            loop {
-                let req = req_rx.recv().expect("receive failed");
-                let resp = call_abci(index, req);
-                resp_tx.send(resp).expect("send failed");
-            }
+        std::thread::spawn(move || loop {
+            let req = req_rx.recv().expect("receive failed");
+            let resp = call_abci(index, req);
+            resp_tx.send(resp).expect("send failed");
         });
 
         let ffi_res = unsafe { new_node(config_bytes, abci_callback, null_mut()) };
         if ffi_res < 0 {
             return Err(Error::from_new_node_error(ffi_res));
         }
-
 
         // release config_bytes here.
 

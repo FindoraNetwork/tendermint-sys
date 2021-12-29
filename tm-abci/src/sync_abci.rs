@@ -5,23 +5,21 @@
 pub use tm_protos::abci::{
     request, response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
     RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
-    RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, RequestSetOption, Response,
+    RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, Response,
     ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit,
     ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo,
     ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot,
-    ResponseQuery, ResponseSetOption,
+    ResponseQuery,
 };
 
 pub trait SyncApplication: Send {
-
-    fn dispatch (&mut self, request: Request) -> Response {
+    fn dispatch(&mut self, request: Request) -> Response {
         use request::Value;
         Response {
             value: Some(match request.value.unwrap() {
                 Value::Echo(req) => response::Value::Echo(self.echo(req)),
                 Value::Flush(_) => response::Value::Flush(self.flush()),
                 Value::Info(req) => response::Value::Info(self.info(req)),
-                Value::SetOption(req) => response::Value::SetOption(self.set_option(req)),
                 Value::InitChain(req) => response::Value::InitChain(self.init_chain(req)),
                 Value::Query(req) => response::Value::Query(self.query(req)),
                 Value::BeginBlock(req) => response::Value::BeginBlock(self.begin_block(req)),
@@ -30,7 +28,9 @@ pub trait SyncApplication: Send {
                 Value::EndBlock(req) => response::Value::EndBlock(self.end_block(req)),
                 Value::Commit(_) => response::Value::Commit(self.commit()),
                 Value::ListSnapshots(_) => response::Value::ListSnapshots(self.list_snapshots()),
-                Value::OfferSnapshot(req) => response::Value::OfferSnapshot(self.offer_snapshot(req)),
+                Value::OfferSnapshot(req) => {
+                    response::Value::OfferSnapshot(self.offer_snapshot(req))
+                }
                 Value::LoadSnapshotChunk(req) => {
                     response::Value::LoadSnapshotChunk(self.load_snapshot_chunk(req))
                 }
@@ -80,10 +80,6 @@ pub trait SyncApplication: Send {
     }
 
     fn commit(&mut self) -> ResponseCommit {
-        Default::default()
-    }
-
-    fn set_option(&mut self, _request: RequestSetOption) -> ResponseSetOption {
         Default::default()
     }
 

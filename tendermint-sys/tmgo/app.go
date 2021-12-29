@@ -75,11 +75,11 @@ func (a *ABCFApplication) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo
 	return *abci_resp.GetInfo()
 }
 
-func (a *ABCFApplication) SetOption(req abcitypes.RequestSetOption) abcitypes.ResponseSetOption {
-	abci_req := abcitypes.ToRequestSetOption(req)
-	abci_resp := a.call_abci(abci_req)
-	return *abci_resp.GetSetOption()
-}
+//func (a *ABCFApplication) SetOption(req abcitypes.RequestSetOption) abcitypes.ResponseSetOption {
+//	abci_req := abcitypes.ToRequestSetOption(req)
+//	abci_resp := a.call_abci(abci_req)
+//	return *abci_resp.GetSetOption()
+//}
 
 func (a *ABCFApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.ResponseDeliverTx {
 	abci_req := abcitypes.ToRequestDeliverTx(req)

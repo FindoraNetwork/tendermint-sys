@@ -1,19 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/spf13/viper"
+	tmclient "github.com/tendermint/tendermint/abci/client"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
-	nm "github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/p2p"
+	"github.com/tendermint/tendermint/libs/service"
+	tmtime "github.com/tendermint/tendermint/libs/time"
+	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 	"os"
 	"path/filepath"
 	"sync"
@@ -33,32 +33,53 @@ import "C"
 
 var mu sync.Mutex
 var index int
-var nodes = make(map[int]*nm.Node)
+var nodes = make(map[int]service.Service)
 
 //export init_config
-func init_config(config_c C.ByteBufferReturn) C.int32_t {
+func init_config(config_c C.ByteBufferReturn, node_type C.int32_t) C.int32_t {
     cgo_connfig := C.GoBytes(unsafe.Pointer(config_c.data), C.int(config_c.len))
 	configFile := string(cgo_connfig)
+
 	config := cfg.DefaultConfig()
+	switch node_type {
+	case 0: config.Mode = cfg.ModeFull
+	case 1: config.Mode = cfg.ModeValidator
+	case 2: config.Mode = cfg.ModeSeed
+	default:
+		return -8
+	}
 
 	cfg.WriteConfigFile(configFile, config)
 
-	root_dir := filepath.Dir(filepath.Dir(configFile))
+	root_dir := configFile
 
 	config.SetRoot(root_dir)
 
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	//logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	logger,err := log.NewDefaultLogger(log.LogFormatPlain,"info", false)
+	if err != nil {
+		fmt.Println(err)
+		return -7
+	}
 
 	// init config
-	privValKeyFile := config.PrivValidatorKeyFile()
-	privValStateFile := config.PrivValidatorStateFile()
+	privValKeyFile := config.PrivValidator.KeyFile()
+	privValStateFile := config.PrivValidator.StateFile()
 	var pv *privval.FilePV
+
 	if tmos.FileExists(privValKeyFile) {
-		pv = privval.LoadFilePV(privValKeyFile, privValStateFile)
+		pv,err = privval.LoadFilePV(privValKeyFile, privValStateFile)
+		if err != nil {
+			return -6
+		}
 		logger.Info("Found private validator", "keyFile", privValKeyFile,
 			"stateFile", privValStateFile)
 	} else {
-		pv = privval.GenFilePV(privValKeyFile, privValStateFile)
+		pv,err = privval.GenFilePV(privValKeyFile, privValStateFile, types.ABCIPubKeyTypeEd25519)
+		if err != nil {
+			return -5
+		}
+
 		pv.Save()
 		logger.Info("Generated private validator", "keyFile", privValKeyFile,
 			"stateFile", privValStateFile)
@@ -68,7 +89,7 @@ func init_config(config_c C.ByteBufferReturn) C.int32_t {
 	if tmos.FileExists(nodeKeyFile) {
 		logger.Info("Found node key", "path", nodeKeyFile)
 	} else {
-		if _, err := p2p.LoadOrGenNodeKey(nodeKeyFile); err != nil {
+		if _, err := types.LoadOrGenNodeKey(nodeKeyFile); err != nil {
 			return -2
 		}
 		logger.Info("Generated node key", "path", nodeKeyFile)
@@ -84,7 +105,7 @@ func init_config(config_c C.ByteBufferReturn) C.int32_t {
 			GenesisTime:     tmtime.Now(),
 			ConsensusParams: types.DefaultConsensusParams(),
 		}
-		pubKey, err := pv.GetPubKey()
+		pubKey, err := pv.GetPubKey(context.Background())
 		if err != nil {
 			return -3
 		}
@@ -129,26 +150,12 @@ func new_node(config_c C.ByteBufferReturn, abci_ptr unsafe.Pointer, userdata uns
 
 	config.SetRoot(root_dir)
 
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-
-    var err error
-    logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel)
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "failed to parse log level: %v\n", err)
-        return -4
-    }
-
-	pv := privval.LoadFilePV(
-		config.PrivValidatorKeyFile(),
-		config.PrivValidatorStateFile(),
-	)
-
-	nodeKey, err := p2p.LoadNodeKey(config.NodeKeyFile())
+	logger,err := log.NewDefaultLogger(log.LogFormatPlain,"info", false)
 	if err != nil {
-		// load node key error.
-		fmt.Fprintf(os.Stderr, "%v", err)
-		return -2
+		fmt.Println(err)
+		return -3
 	}
+
 
 	// Get index
 	mu.Lock()
@@ -161,22 +168,13 @@ func new_node(config_c C.ByteBufferReturn, abci_ptr unsafe.Pointer, userdata uns
 
 	app := NewABCFApplication(abci_ptr, index, userdata)
 
-	node, err := nm.NewNode(
-		config,
-		pv,
-		nodeKey,
-		proxy.NewLocalClientCreator(app),
-		nm.DefaultGenesisDocProviderFunc(config),
-		nm.DefaultDBProvider,
-		nm.DefaultMetricsProvider(config.Instrumentation),
-		logger)
-
+	client := tmclient.NewLocalCreator(app)
+	service,err := node.New(config, logger, client,nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
-		return -3
+		return -2
 	}
 
-	nodes[index] = node
+	nodes[index] = service
 
 	return C.int32_t(index)
 }
