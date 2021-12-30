@@ -9,18 +9,18 @@ pub use error::{Error, Result};
 mod init;
 pub use init::init_home;
 
-pub enum NodeEnum {
+pub enum NodeType {
     FullNode,
     Validator,
     Seed,
 }
 
-impl NodeEnum {
+impl NodeType {
     pub fn code(&self) -> raw::NodeType {
         match self {
-            NodeEnum::FullNode => 0,
-            NodeEnum::Validator => 1,
-            NodeEnum::Seed => 2,
+            NodeType::FullNode => 0,
+            NodeType::Validator => 1,
+            NodeType::Seed => 2,
         }
     }
 }

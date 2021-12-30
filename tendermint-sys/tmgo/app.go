@@ -16,11 +16,11 @@ typedef struct ByteBufferReturn {
     uint8_t *data;
 } ByteBufferReturn;
 
-typedef ByteBufferReturn (*bytes_func_ptr)(ByteBufferReturn, int32_t, void*);
+typedef ByteBufferReturn (*bytes_func_ptr)(ByteBufferReturn, void*);
 
-ByteBufferReturn call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, int32_t index, ByteBufferReturn bytes) {
+ByteBufferReturn call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, ByteBufferReturn bytes) {
     bytes_func_ptr fp = (bytes_func_ptr) abci_ptr;
-    return fp(bytes, index, userdata);
+    return fp(bytes, userdata);
 }
 
 void c_free(uint8_t *p) {
@@ -36,14 +36,13 @@ import (
 
 type ABCFApplication struct {
 	abci_ptr unsafe.Pointer
-	index    int
 	userdata unsafe.Pointer
 }
 
 var _ abcitypes.Application = (*ABCFApplication)(nil)
 
-func NewABCFApplication(abci_ptr unsafe.Pointer, index int, userdata unsafe.Pointer) *ABCFApplication {
-	return &ABCFApplication{abci_ptr, index, userdata}
+func NewABCFApplication(abci_ptr unsafe.Pointer, userdata unsafe.Pointer) *ABCFApplication {
+	return &ABCFApplication{abci_ptr, userdata}
 }
 
 func (a *ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
@@ -55,7 +54,7 @@ func (a *ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
     arg.len = C.size_t(len(data))
     arg.data = (*C.uchar)(argument)
 
-	bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
+	bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, arg)
 
     data = nil
 

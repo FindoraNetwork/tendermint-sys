@@ -55,7 +55,6 @@ where
             Value::Echo(req) => response::Value::Echo(app.echo(req).await),
             Value::Flush(_) => response::Value::Flush(app.flush().await),
             Value::Info(req) => response::Value::Info(app.info(req).await),
-            Value::SetOption(req) => response::Value::SetOption(app.set_option(req).await),
             Value::InitChain(req) => response::Value::InitChain(app.init_chain(req).await),
             Value::Query(req) => response::Value::Query(app.query(req).await),
             Value::BeginBlock(req) => response::Value::BeginBlock(app.begin_block(req).await),

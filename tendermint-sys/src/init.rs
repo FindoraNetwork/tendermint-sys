@@ -1,10 +1,10 @@
 use crate::{
     raw::{init_config, ByteBufferReturn},
-    Error, NodeEnum, Result,
+    Error, NodeType, Result,
 };
 use std::{fs, path::Path};
 
-fn new_config(path: &str, node_type: NodeEnum) -> Result<()> {
+fn new_config(path: &str, node_type: NodeType) -> Result<()> {
     let mut config_str = String::from(path);
     let config_bytes = ByteBufferReturn {
         len: config_str.len(),
@@ -19,7 +19,7 @@ fn new_config(path: &str, node_type: NodeEnum) -> Result<()> {
     }
 }
 
-pub fn init_home(path: &str, node_type: NodeEnum) -> Result<()> {
+pub fn init_home(path: &str, node_type: NodeType) -> Result<()> {
     let home_path = Path::new(path);
     let config_dir_path = home_path.join("config");
     let data_dir_path = home_path.join("data");

@@ -16,7 +16,6 @@ import (
 	"github.com/tendermint/tendermint/types"
 	"os"
 	"path/filepath"
-	"sync"
 	"unsafe"
 )
 
@@ -31,9 +30,7 @@ typedef struct ByteBufferReturn {
 */
 import "C"
 
-var mu sync.Mutex
-var index int
-var nodes = make(map[int]service.Service)
+var SERVER service.Service
 
 //export init_config
 func init_config(config_c C.ByteBufferReturn, node_type C.int32_t) C.int32_t {
@@ -156,46 +153,34 @@ func new_node(config_c C.ByteBufferReturn, abci_ptr unsafe.Pointer, userdata uns
 		return -3
 	}
 
-
-	// Get index
-	mu.Lock()
-	defer mu.Unlock()
-	index++
-
-	for nodes[index] != nil {
-		index++
-	}
-
-	app := NewABCFApplication(abci_ptr, index, userdata)
+	app := NewABCFApplication(abci_ptr, userdata)
 
 	client := tmclient.NewLocalCreator(app)
-	service,err := node.New(config, logger, client,nil)
+	server,err := node.New(config, logger, client,nil)
 	if err != nil {
 		return -2
 	}
 
-	nodes[index] = service
+	SERVER = server
 
-	return C.int32_t(index)
+	return 0
 }
 
 //export start_node
 func start_node(index C.int32_t) C.int32_t {
-	app := nodes[int(index)]
-	if app == nil {
+	if SERVER == nil {
 		return -1
 	}
-	app.Start()
+	SERVER.Start()
 	return 0
 }
 
 //export stop_node
 func stop_node(index C.int32_t) C.int32_t {
-	app := nodes[int(index)]
-	if app == nil {
+	if SERVER == nil {
 		return -1
 	}
-	app.Stop()
+	SERVER.Stop()
 	return 0
 }
 

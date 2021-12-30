@@ -2,16 +2,15 @@
 //!
 //! Create, start or stop tendermint node.
 
-use crate::raw::{new_node, start_node, stop_node, ByteBufferReturn, NodeIndex};
+use crate::raw::{new_node, start_node, stop_node, ByteBufferReturn};
 use crate::{Error, Result};
 use prost::Message;
-use std::collections::BTreeMap;
 use std::ffi::c_void;
 use std::ptr::null_mut;
 use std::slice::from_raw_parts;
-use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::Mutex;
 use tm_protos::abci::{Request, Response};
+use std::cell::RefCell;
 
 #[cfg(feature = "sync")]
 use tm_abci::SyncApplication;
@@ -21,39 +20,35 @@ use tm_abci::Application;
 
 #[cfg(feature = "async")]
 lazy_static::lazy_static! {
-    static ref APPLICATIONS: Mutex<BTreeMap<i32, Box<dyn Application>>> = Mutex::new(BTreeMap::new());
+    static ref APPLICATIONS: Mutex<RefCell<Box<dyn Application>>> = Mutex::new(RefCell::new(Box::new(())));
 }
 
 #[cfg(feature = "sync")]
 lazy_static::lazy_static! {
-    static ref APPLICATIONS: Mutex<BTreeMap<i32, Box<dyn SyncApplication>>> = Mutex::new(BTreeMap::new());
+    static ref APPLICATIONS: Mutex<RefCell<Box<dyn SyncApplication>>> = Mutex::new(RefCell::new(Box::new(())));
 }
 
 lazy_static::lazy_static! {
-    static ref INDEX: AtomicI32 = AtomicI32::new(1);
     static ref SENDERS: Mutex<Option<std::sync::mpsc::Sender<Request>>> = Mutex::new(None);
     static ref RECEIVER: Mutex<Option<std::sync::mpsc::Receiver<Response>>> = Mutex::new(None);
 }
 
 #[cfg(feature = "async")]
-fn call_abci(index: i32, req: Request) -> Response {
-    let mut apps = APPLICATIONS.lock().expect("lock faild");
-    log::debug!("index from go is: {}", index);
-    let app = apps.get_mut(&index).expect("index from go error");
-    smol::block_on(async { app.dispatch(req).await })
+fn call_abci(req: Request) -> Response {
+    let app = APPLICATIONS.lock().expect("lock faild");
+    smol::block_on(async {
+        app.borrow_mut().dispatch(req).await
+    })
 }
 
 #[cfg(feature = "sync")]
-fn call_abci(index: i32, req: Request) -> Response {
-    let mut apps = APPLICATIONS.lock().expect("lock faild");
-    log::debug!("index from go is: {}", index);
-    let app = apps.get_mut(&index).expect("index from go error");
-    app.dispatch(req)
+fn call_abci(req: Request) -> Response {
+    let app = APPLICATIONS.lock().expect("lock faild");
+    app.borrow_mut().dispatch(req)
 }
 
 extern "C" fn abci_callback(
     argument: ByteBufferReturn,
-    _index: i32,
     _userdata: *mut c_void,
 ) -> ByteBufferReturn {
     let abci_req_bytes = unsafe { from_raw_parts(argument.data, argument.len) };
@@ -96,9 +91,7 @@ extern "C" fn abci_callback(
 }
 
 /// Tendermint node
-pub struct Node {
-    index: NodeIndex,
-}
+pub struct Node {}
 
 #[cfg(feature = "async")]
 impl Node {
@@ -114,11 +107,12 @@ impl Node {
             data: config_str.as_mut_ptr(),
         };
 
-        let mut apps = APPLICATIONS.lock().expect("lock faild");
-        let index = INDEX.fetch_add(1, Ordering::SeqCst);
-        apps.insert(index, Box::new(application));
+        let app = APPLICATIONS.lock().expect("lock faild");
+        // let index = INDEX.fetch_add(1, Ordering::SeqCst);
+        // apps.insert(index, Box::new(application));
+        app.replace(Box::new(application));
         // release lock.
-        drop(apps);
+        drop(app);
 
         let (req_tx, req_rx) = std::sync::mpsc::channel();
         let (resp_tx, resp_rx) = std::sync::mpsc::channel();
@@ -133,7 +127,7 @@ impl Node {
 
         std::thread::spawn(move || loop {
             let req = req_rx.recv().expect("receive failed");
-            let resp = call_abci(index, req);
+            let resp = call_abci(req);
             resp_tx.send(resp).expect("send failed");
         });
 
@@ -144,9 +138,7 @@ impl Node {
 
         // release config_bytes here.
 
-        assert_eq!(ffi_res, index);
-
-        Ok(Self { index })
+        Ok(Self {})
     }
 }
 
@@ -163,9 +155,10 @@ impl Node {
             data: config_str.as_mut_ptr(),
         };
 
-        let mut apps = APPLICATIONS.lock().expect("lock faild");
-        let index = INDEX.fetch_add(1, Ordering::SeqCst);
-        apps.insert(index, Box::new(application));
+        let mut app = APPLICATIONS.lock().expect("lock faild");
+        // let index = INDEX.fetch_add(1, Ordering::SeqCst);
+        // apps.insert(index, Box::new(application));
+        app = Box::new(application);
         // release lock.
         drop(apps);
 
@@ -195,14 +188,14 @@ impl Node {
 
         assert_eq!(ffi_res, index);
 
-        Ok(Self { index })
+        Ok(Self { })
     }
 }
 
 impl Node {
     /// Start node
     pub fn start(&self) -> Result<()> {
-        let ffi_res = unsafe { start_node(self.index) };
+        let ffi_res = unsafe { start_node() };
         match ffi_res {
             0 => Ok(()),
             -1 => Err(Error::NoNodeIndex),
@@ -212,7 +205,7 @@ impl Node {
 
     /// Stop node.
     pub fn stop(&self) -> Result<()> {
-        let ffi_res = unsafe { stop_node(self.index) };
+        let ffi_res = unsafe { stop_node() };
         match ffi_res {
             0 => Ok(()),
             -1 => Err(Error::NoNodeIndex),

@@ -1,5 +1,5 @@
-use tendermint_sys::{init_home, NodeEnum};
+use tendermint_sys::{init_home, NodeType};
 
 fn main() {
-    init_home("./target/tendermint", NodeEnum::Validator).unwrap();
+    init_home("./target/tendermint", NodeType::Validator).unwrap();
 }
