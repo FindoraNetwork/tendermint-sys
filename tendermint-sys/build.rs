@@ -10,7 +10,7 @@ pub enum LevelDB {
 
 fn main() {
     println!("cargo:rerun-if-changed=tmgo/app.go");
-    println!("cargo:rerun-if-changed=tmgo/main.go");
+    println!("cargo:rerun-if-changed=tmgo/node.go");
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=script/build.sh");
     let out_dir = env::var("OUT_DIR").unwrap();

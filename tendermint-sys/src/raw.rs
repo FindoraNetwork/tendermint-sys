@@ -40,13 +40,15 @@ extern "C" {
     /// Start tendermint node.
     ///
     /// If return 0, start success.
-    /// Or return -1, node index don't exist.
+    /// If return -1, node don't exist.
+    /// If return -2, start failed.
     pub fn start_node() -> i32;
 
     /// Stop tendermint node.
     ///
-    /// If return 0, start success.
-    /// Or return -1, node index don't exist.
+    /// If return 0, stop success.
+    /// If return -1, node don't exist.
+    /// If return -2, stop failed.
     pub fn stop_node() -> i32;
 
     /// Init config file
@@ -61,6 +63,7 @@ extern "C" {
     /// If StatusCode == -6, meaning load PrivValidator failed.
     /// If StatusCode == -7, meaning init log failed.
     /// If StatusCode == -8, meaning set config mode failed.
+    /// If StatusCode == -9, meaning write config failed.
     pub fn init_config(config_bytes: ByteBufferReturn, node_type: NodeType) -> i32;
 }
 

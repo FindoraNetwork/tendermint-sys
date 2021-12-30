@@ -1,37 +1,10 @@
 package main
 
-/*
-// #cgo LDFLAGS: -L${SRCDIR}/../target/release -lffi_slim
-#include<stdint.h>
-#include<stddef.h>
-#include<stdlib.h>
-
-typedef struct ByteBuffer {
-    int64_t len;
-    uint8_t *data;
-} ByteBuffer;
-
-typedef struct ByteBufferReturn {
-    size_t len;
-    uint8_t *data;
-} ByteBufferReturn;
-
-typedef ByteBufferReturn (*bytes_func_ptr)(ByteBufferReturn, void*);
-
-ByteBufferReturn call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, ByteBufferReturn bytes) {
-    bytes_func_ptr fp = (bytes_func_ptr) abci_ptr;
-    return fp(bytes, userdata);
-}
-
-void c_free(uint8_t *p) {
-    free(p);
-}
-*/
+//#include "raw.h"
 import "C"
 import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"unsafe"
-    // "reflect"
 )
 
 type ABCFApplication struct {
@@ -73,12 +46,6 @@ func (a *ABCFApplication) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo
 	abci_resp := a.call_abci(abci_req)
 	return *abci_resp.GetInfo()
 }
-
-//func (a *ABCFApplication) SetOption(req abcitypes.RequestSetOption) abcitypes.ResponseSetOption {
-//	abci_req := abcitypes.ToRequestSetOption(req)
-//	abci_resp := a.call_abci(abci_req)
-//	return *abci_resp.GetSetOption()
-//}
 
 func (a *ABCFApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.ResponseDeliverTx {
 	abci_req := abcitypes.ToRequestDeliverTx(req)
