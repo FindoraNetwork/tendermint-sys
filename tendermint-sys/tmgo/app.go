@@ -1,49 +1,21 @@
 package main
 
-/*
-// #cgo LDFLAGS: -L${SRCDIR}/../target/release -lffi_slim
-#include<stdint.h>
-#include<stddef.h>
-#include<stdlib.h>
-
-typedef struct ByteBuffer {
-    int64_t len;
-    uint8_t *data;
-} ByteBuffer;
-
-typedef struct ByteBufferReturn {
-    size_t len;
-    uint8_t *data;
-} ByteBufferReturn;
-
-typedef ByteBufferReturn (*bytes_func_ptr)(ByteBufferReturn, int32_t, void*);
-
-ByteBufferReturn call_fn_ptr_with_bytes(void* abci_ptr, void* userdata, int32_t index, ByteBufferReturn bytes) {
-    bytes_func_ptr fp = (bytes_func_ptr) abci_ptr;
-    return fp(bytes, index, userdata);
-}
-
-void c_free(uint8_t *p) {
-    free(p);
-}
-*/
+//#include "raw.h"
 import "C"
 import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"unsafe"
-    // "reflect"
 )
 
 type ABCFApplication struct {
 	abci_ptr unsafe.Pointer
-	index    int
 	userdata unsafe.Pointer
 }
 
 var _ abcitypes.Application = (*ABCFApplication)(nil)
 
-func NewABCFApplication(abci_ptr unsafe.Pointer, index int, userdata unsafe.Pointer) *ABCFApplication {
-	return &ABCFApplication{abci_ptr, index, userdata}
+func NewABCFApplication(abci_ptr unsafe.Pointer, userdata unsafe.Pointer) *ABCFApplication {
+	return &ABCFApplication{abci_ptr, userdata}
 }
 
 func (a *ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
@@ -55,7 +27,7 @@ func (a *ABCFApplication) call_abci(req *abcitypes.Request) abcitypes.Response {
     arg.len = C.size_t(len(data))
     arg.data = (*C.uchar)(argument)
 
-	bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, C.int32_t(a.index), arg)
+	bb := C.call_fn_ptr_with_bytes(a.abci_ptr, a.userdata, arg)
 
     data = nil
 
@@ -73,12 +45,6 @@ func (a *ABCFApplication) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo
 	abci_req := abcitypes.ToRequestInfo(req)
 	abci_resp := a.call_abci(abci_req)
 	return *abci_resp.GetInfo()
-}
-
-func (a *ABCFApplication) SetOption(req abcitypes.RequestSetOption) abcitypes.ResponseSetOption {
-	abci_req := abcitypes.ToRequestSetOption(req)
-	abci_resp := a.call_abci(abci_req)
-	return *abci_resp.GetSetOption()
 }
 
 func (a *ABCFApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.ResponseDeliverTx {

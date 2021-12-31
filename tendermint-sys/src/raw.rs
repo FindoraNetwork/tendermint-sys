@@ -12,13 +12,16 @@ pub struct ByteBufferReturn {
 
 /// Tendermint node index.
 ///
-/// If value > 0, is a valid index.
-pub type NodeIndex = i32;
+/// 0 --> full
+/// 1 --> validator
+/// 2 --> seed
+pub type NodeType = i32;
 
 /// This function pointer will called when abci messages are trigged.
 ///
 /// ABCI Request and Response are encode by protobuf.
-pub type AbciCallbackPtr = extern "C" fn(ByteBufferReturn, NodeIndex, *mut c_void) -> ByteBufferReturn;
+pub type AbciCallbackPtr =
+    extern "C" fn(ByteBufferReturn, *mut c_void) -> ByteBufferReturn;
 
 extern "C" {
     /// Creat a tendermint node from configure.
@@ -26,8 +29,8 @@ extern "C" {
     /// This function receive configure string as json. Then return `NodeIndex`.
     /// If NodeIndex >= 0, meaning node create success.
     /// If NodeIndex == -1, meaning configure parse failed.
-    /// If NodeIndex == -2, meaning load node key from configure file failed.
-    /// If NodeIndex == -3, meaning node crate failed.
+    /// If NodeIndex == -2, meaning new node failed
+    /// If NodeIndex == -3, meaning init log failed.
     pub fn new_node(
         config_bytes: ByteBufferReturn,
         abci_ptr: AbciCallbackPtr,
@@ -37,14 +40,16 @@ extern "C" {
     /// Start tendermint node.
     ///
     /// If return 0, start success.
-    /// Or return -1, node index don't exist.
-    pub fn start_node(index: NodeIndex) -> i32;
+    /// If return -1, node don't exist.
+    /// If return -2, start failed.
+    pub fn start_node() -> i32;
 
     /// Stop tendermint node.
     ///
-    /// If return 0, start success.
-    /// Or return -1, node index don't exist.
-    pub fn stop_node(index: NodeIndex) -> i32;
+    /// If return 0, stop success.
+    /// If return -1, node don't exist.
+    /// If return -2, stop failed.
+    pub fn stop_node() -> i32;
 
     /// Init config file
     ///
@@ -54,7 +59,12 @@ extern "C" {
     /// If StatusCode == -2, meaning node key init failed.
     /// If StatusCode == -3, meaning public key get failed.
     /// If StatusCode == -4, meaning genesis save failed.
-    pub fn init_config(config_bytes: ByteBufferReturn) -> i32;
+    /// If StatusCode == -5, meaning genesis PrivValidator failed.
+    /// If StatusCode == -6, meaning load PrivValidator failed.
+    /// If StatusCode == -7, meaning init log failed.
+    /// If StatusCode == -8, meaning set config mode failed.
+    /// If StatusCode == -9, meaning write config failed.
+    pub fn init_config(config_bytes: ByteBufferReturn, node_type: NodeType) -> i32;
 }
 
 // #[no_mangle]
