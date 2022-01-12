@@ -1,6 +1,6 @@
-// This file is copied from http://github.com/tendermint/abci
+// This file is copied from <http://github.com/tendermint/abci>
 // NOTE: When using custom types, mind the warnings.
-// https://github.com/gogo/protobuf/blob/master/custom_types.md#warnings-and-issues
+// <https://github.com/gogo/protobuf/blob/master/custom_types.md#warnings-and-issues>
 
 //----------------------------------------
 // Request types
@@ -70,7 +70,7 @@ pub struct RequestInitChain {
     #[prost(string, tag="2")]
     pub chain_id: ::prost::alloc::string::String,
     #[prost(message, optional, tag="3")]
-    pub consensus_params: ::core::option::Option<ConsensusParams>,
+    pub consensus_params: ::core::option::Option<super::types::ConsensusParams>,
     #[prost(message, repeated, tag="4")]
     pub validators: ::prost::alloc::vec::Vec<ValidatorUpdate>,
     #[prost(bytes="vec", tag="5")]
@@ -216,6 +216,7 @@ pub struct ResponseFlush {
 pub struct ResponseInfo {
     #[prost(string, tag="1")]
     pub data: ::prost::alloc::string::String,
+    /// this is the software version of the application. TODO: remove?
     #[prost(string, tag="2")]
     pub version: ::prost::alloc::string::String,
     #[prost(uint64, tag="3")]
@@ -228,7 +229,7 @@ pub struct ResponseInfo {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseInitChain {
     #[prost(message, optional, tag="1")]
-    pub consensus_params: ::core::option::Option<ConsensusParams>,
+    pub consensus_params: ::core::option::Option<super::types::ConsensusParams>,
     #[prost(message, repeated, tag="2")]
     pub validators: ::prost::alloc::vec::Vec<ValidatorUpdate>,
     #[prost(bytes="vec", tag="3")]
@@ -284,6 +285,14 @@ pub struct ResponseCheckTx {
     pub events: ::prost::alloc::vec::Vec<Event>,
     #[prost(string, tag="8")]
     pub codespace: ::prost::alloc::string::String,
+    #[prost(string, tag="9")]
+    pub sender: ::prost::alloc::string::String,
+    #[prost(int64, tag="10")]
+    pub priority: i64,
+    /// mempool_error is set by Tendermint.
+    /// ABCI applictions creating a ResponseCheckTX should not set mempool_error.
+    #[prost(string, tag="11")]
+    pub mempool_error: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseDeliverTx {
@@ -312,7 +321,7 @@ pub struct ResponseEndBlock {
     #[prost(message, repeated, tag="1")]
     pub validator_updates: ::prost::alloc::vec::Vec<ValidatorUpdate>,
     #[prost(message, optional, tag="2")]
-    pub consensus_param_updates: ::core::option::Option<ConsensusParams>,
+    pub consensus_param_updates: ::core::option::Option<super::types::ConsensusParams>,
     #[prost(message, repeated, tag="3")]
     pub events: ::prost::alloc::vec::Vec<Event>,
 }
@@ -391,29 +400,6 @@ pub mod response_apply_snapshot_chunk {
 //----------------------------------------
 // Misc.
 
-/// ConsensusParams contains all consensus-relevant parameters
-/// that can be adjusted by the abci app
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConsensusParams {
-    #[prost(message, optional, tag="1")]
-    pub block: ::core::option::Option<BlockParams>,
-    #[prost(message, optional, tag="2")]
-    pub evidence: ::core::option::Option<super::types::EvidenceParams>,
-    #[prost(message, optional, tag="3")]
-    pub validator: ::core::option::Option<super::types::ValidatorParams>,
-    #[prost(message, optional, tag="4")]
-    pub version: ::core::option::Option<super::types::VersionParams>,
-}
-/// BlockParams contains limits on the block size.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct BlockParams {
-    /// Note: must be greater than 0
-    #[prost(int64, tag="1")]
-    pub max_bytes: i64,
-    /// Note: must be greater or equal to -1
-    #[prost(int64, tag="2")]
-    pub max_gas: i64,
-}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LastCommitInfo {
     #[prost(int32, tag="1")]
@@ -434,10 +420,10 @@ pub struct Event {
 /// EventAttribute is a single key-value pair, associated with an event.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EventAttribute {
-    #[prost(bytes="vec", tag="1")]
-    pub key: ::prost::alloc::vec::Vec<u8>,
-    #[prost(bytes="vec", tag="2")]
-    pub value: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag="1")]
+    pub key: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub value: ::prost::alloc::string::String,
     /// nondeterministic
     #[prost(bool, tag="3")]
     pub index: bool,
@@ -465,7 +451,7 @@ pub struct Validator {
     /// The first 20 bytes of SHA256(public key)
     #[prost(bytes="vec", tag="1")]
     pub address: ::prost::alloc::vec::Vec<u8>,
-    /// PubKey pub_key = 2 [(gogoproto.nullable)=false];
+    /// PubKey pub_key = 2 \[(gogoproto.nullable)=false\];
     ///
     /// The voting power
     #[prost(int64, tag="3")]
@@ -502,7 +488,7 @@ pub struct Evidence {
     pub time: ::core::option::Option<::prost_types::Timestamp>,
     /// Total voting power of the validator set in case the ABCI application does
     /// not store historical validators.
-    /// https://github.com/tendermint/tendermint/issues/4581
+    /// <https://github.com/tendermint/tendermint/issues/4581>
     #[prost(int64, tag="5")]
     pub total_voting_power: i64,
 }
