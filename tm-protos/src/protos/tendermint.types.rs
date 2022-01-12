@@ -252,12 +252,6 @@ pub struct BlockParams {
     /// Note: must be greater or equal to -1
     #[prost(int64, tag="2")]
     pub max_gas: i64,
-    /// Minimum time increment between consecutive blocks (in milliseconds) If the
-    /// block header timestamp is ahead of the system clock, decrease this value.
-    ///
-    /// Not exposed to the application.
-    #[prost(int64, tag="3")]
-    pub time_iota_ms: i64,
 }
 /// EvidenceParams determine how we handle evidence of malfeasance.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -272,7 +266,7 @@ pub struct EvidenceParams {
     ///
     /// It should correspond with an app's "unbonding period" or other similar
     /// mechanism for handling [Nothing-At-Stake
-    /// attacks](https://github.com/ethereum/wiki/wiki/Proof-of-Stake-FAQ#what-is-the-nothing-at-stake-problem-and-how-can-it-be-fixed).
+    /// attacks](<https://github.com/ethereum/wiki/wiki/Proof-of-Stake-FAQ#what-is-the-nothing-at-stake-problem-and-how-can-it-be-fixed>).
     #[prost(message, optional, tag="2")]
     pub max_age_duration: ::core::option::Option<::prost_types::Duration>,
     /// This sets the maximum size of total evidence in bytes that can be committed in a single block.
