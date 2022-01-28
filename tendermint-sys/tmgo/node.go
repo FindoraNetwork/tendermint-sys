@@ -48,7 +48,7 @@ func init_config(config_c C.ByteBufferReturn, node_type C.int32_t) C.int32_t {
 	config.SetRoot(root_dir)
 
 	//logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-	logger,err := log.NewDefaultLogger(log.LogFormatPlain,"info", false)
+	logger,err := log.NewDefaultLogger(log.LogFormatPlain, "error", false)
 	if err != nil {
 		fmt.Println(err)
 		return -7
