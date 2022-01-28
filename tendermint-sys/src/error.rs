@@ -21,7 +21,6 @@ impl From<io::Error> for Error {
 
 impl Error {
     pub fn from_new_node_error(code: i32) -> Self {
-        println!("{}", code);
         match code {
             -1 => Error::ConfigParseFailed,
             -2 => Error::LoadNodeKeyFailed,

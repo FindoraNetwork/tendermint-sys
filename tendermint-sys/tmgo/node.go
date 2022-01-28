@@ -153,6 +153,7 @@ func new_node(config_c C.ByteBufferReturn, abci_ptr unsafe.Pointer, userdata uns
 	client := tmclient.NewLocalCreator(app)
 	server,err := node.New(config, logger, client,nil)
 	if err != nil {
+        fmt.Println(err)
 		return -2
 	}
 
