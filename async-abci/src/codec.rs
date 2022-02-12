@@ -2,8 +2,7 @@ use bytes::{Buf, BufMut, BytesMut};
 use prost::Message;
 use std::marker::PhantomData;
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpStream,
+    io::{AsyncReadExt, AsyncWriteExt, AsyncRead, AsyncWrite},
 };
 
 use crate::error::Error;
@@ -12,38 +11,34 @@ use crate::error::Error;
 /// we're encountering a decoding error for a varint.
 pub const MAX_VARINT_LENGTH: usize = 16;
 
-pub struct Codec<I, O> {
-    stream: TcpStream,
+pub struct ICodec<R, I> {
+    stream: R,
     // Long-running read buffer
     read_buf: BytesMut,
     // Fixed-length read window
     read_window: Vec<u8>,
-    write_buf: BytesMut,
     _incoming: PhantomData<I>,
-    _outgoing: PhantomData<O>,
 }
 
-impl<I, O> Codec<I, O>
+impl<R, I> ICodec<R, I>
 where
     I: Message + Default,
-    O: Message,
 {
     /// Constructor.
-    pub fn new(stream: TcpStream, read_buf_size: usize) -> Self {
+    pub fn new(stream: R, read_buf_size: usize) -> Self {
         Self {
             stream,
             read_buf: BytesMut::new(),
             read_window: vec![0_u8; read_buf_size],
-            write_buf: BytesMut::new(),
             _incoming: Default::default(),
-            _outgoing: Default::default(),
         }
     }
 }
 
 // Iterating over a codec produces instances of `Result<I>`.
-impl<I, O> Codec<I, O>
+impl<R, I> ICodec<R, I>
 where
+    R: AsyncRead + Unpin,
     I: Message + Default,
 {
     pub async fn next(&mut self) -> Option<Result<I, Error>> {
@@ -71,8 +66,29 @@ where
     }
 }
 
-impl<I, O> Codec<I, O>
+pub struct OCodec<W, O> {
+    stream: W,
+    write_buf: BytesMut,
+    _incoming: PhantomData<O>,
+}
+
+impl<W, O> OCodec<W, O>
 where
+    O: Message + Default,
+{
+    /// Constructor.
+    pub fn new(stream: W) -> Self {
+        Self {
+            stream,
+            write_buf: BytesMut::default(),
+            _incoming: Default::default(),
+        }
+    }
+}
+
+impl<W, O> OCodec<W, O>
+where
+    W: AsyncWrite + Unpin,
     O: Message,
 {
     /// Send a message using this codec.

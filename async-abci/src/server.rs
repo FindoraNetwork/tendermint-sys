@@ -1,4 +1,4 @@
-use crate::{Codec, Error, Result};
+use crate::{Error, Result, codec::ICodec, OCodec};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tm_abci::Application;
@@ -7,14 +7,35 @@ use tokio::net::{TcpListener, TcpStream, ToSocketAddrs};
 
 pub const DEFAULT_SERVER_READ_BUF_SIZE: usize = 1024 * 1024;
 
-async fn conn_handle<A>(socket: TcpStream, addr: SocketAddr, app: Arc<A>)
+async fn conn_handle<A>(mut socket: TcpStream, addr: SocketAddr, app: Arc<A>)
 where
-    A: Application,
+    A: Application + 'static,
 {
-    let mut codec = Codec::new(socket, DEFAULT_SERVER_READ_BUF_SIZE);
+    let (reader, writer) = socket.split();
+
+    let mut icodec = ICodec::new(reader, DEFAULT_SERVER_READ_BUF_SIZE);
+    // let mut ocodec = OCodec::new(writer);
+
+    let (req_tx, mut req_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (resp_tx, mut resp_rx) = tokio::sync::mpsc::unbounded_channel();
+    
+    tokio::spawn(async move {
+        loop {
+            let app = app.clone();
+
+            if let Some(request) = req_rx.recv().await {
+                let resp_tx = resp_tx.clone();
+
+                let _ = tokio::spawn(async move {
+                    let response = app.dispatch(request).await;
+                    resp_tx.send(response).unwrap();
+                });
+            }
+        }
+    });
 
     loop {
-        let request = match codec.next().await {
+        let request: Request = match icodec.next().await {
             Some(result) => match result {
                 Ok(r) => r,
                 Err(e) => {
@@ -32,14 +53,8 @@ where
             }
         };
 
-        log::debug!("Recv packet {:?}", request);
-        let response = dispatch(app.as_ref(), request).await;
-        log::debug!("Return packet {:?}", response);
+        req_tx.send(request).unwrap();
 
-        if let Err(e) = codec.send(response).await {
-            log::error!("Failed sending response to client {}: {:?}", addr, e);
-            return;
-        }
     }
 }
 
