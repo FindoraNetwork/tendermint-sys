@@ -20,8 +20,7 @@ pub type NodeType = i32;
 /// This function pointer will called when abci messages are trigged.
 ///
 /// ABCI Request and Response are encode by protobuf.
-pub type AbciCallbackPtr =
-    extern "C" fn(ByteBufferReturn, *mut c_void) -> ByteBufferReturn;
+pub type AbciCallbackPtr = extern "C" fn(ByteBufferReturn, *mut c_void) -> ByteBufferReturn;
 
 extern "C" {
     /// Creat a tendermint node from configure.

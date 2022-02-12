@@ -4,11 +4,10 @@ use std::sync::Arc;
 use tm_abci::Application;
 use tm_protos::abci::{request::Value, response, Request, Response};
 use tokio::net::{TcpListener, TcpStream, ToSocketAddrs};
-use tokio::sync::Mutex;
 
 pub const DEFAULT_SERVER_READ_BUF_SIZE: usize = 1024 * 1024;
 
-async fn conn_handle<A>(socket: TcpStream, addr: SocketAddr, app: Arc<Mutex<A>>)
+async fn conn_handle<A>(socket: TcpStream, addr: SocketAddr, app: Arc<A>)
 where
     A: Application,
 {
@@ -33,10 +32,8 @@ where
             }
         };
 
-        let mut app = app.lock().await;
-
         log::debug!("Recv packet {:?}", request);
-        let response = dispatch(&mut *app, request).await;
+        let response = dispatch(app.as_ref(), request).await;
         log::debug!("Return packet {:?}", response);
 
         if let Err(e) = codec.send(response).await {
@@ -46,7 +43,7 @@ where
     }
 }
 
-pub async fn dispatch<A>(app: &mut A, request: Request) -> Response
+pub async fn dispatch<A>(app: &A, request: Request) -> Response
 where
     A: Application,
 {
@@ -78,14 +75,14 @@ where
 
 pub struct Server<A: Application> {
     listener: Option<TcpListener>,
-    app: Arc<Mutex<A>>,
+    app: Arc<A>,
 }
 
 impl<A: Application + 'static> Server<A> {
     pub fn new(app: A) -> Self {
         Server {
             listener: None,
-            app: Arc::new(Mutex::new(app)),
+            app: Arc::new(app),
         }
     }
 

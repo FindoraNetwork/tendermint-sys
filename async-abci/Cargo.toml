@@ -17,5 +17,5 @@ tm-protos = { path = "../tm-protos" }
 
 [dev-dependencies]
 env_logger = "0.8.4"
-tokio = { version = "1", features = ["macros", "rt-multi-thread"]}
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"]}
 
