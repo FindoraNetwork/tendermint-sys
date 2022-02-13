@@ -3,7 +3,7 @@ use std::{io, time::Duration};
 use tm_abci::Application;
 use tm_protos::abci::{
     RequestBeginBlock, RequestDeliverTx, RequestInfo, ResponseBeginBlock, ResponseDeliverTx,
-    ResponseInfo,
+    ResponseInfo, CheckTxType,
 };
 use tokio::time::sleep;
 
@@ -12,20 +12,21 @@ struct App {}
 #[async_trait::async_trait]
 impl Application for App {
     async fn info(&self, _request: RequestInfo) -> ResponseInfo {
-        println!("--------------------------------------------------------info");
+        // println!("--------------------------------------------------------info");
         Default::default()
     }
 
     async fn begin_block(&self, _request: RequestBeginBlock) -> ResponseBeginBlock {
-        println!("--------------------------------------------------------begin_block");
+        // println!("--------------------------------------------------------begin_block");
         Default::default()
     }
 
     async fn deliver_tx(&self, _request: RequestDeliverTx) -> ResponseDeliverTx {
-        println!(
-            "--------------------------------------------------------recv tx: {:?}",
-            _request
-        );
+        // println!(
+            // "--------------------------------------------------------recv tx: {:?}",
+            // _request
+        // );
+        sleep(Duration::from_secs(10)).await;
 
         // sleep(Duration::from_secs(4)).await;
         //
@@ -37,12 +38,9 @@ impl Application for App {
         &self,
         _request: tm_protos::abci::RequestCheckTx,
     ) -> tm_protos::abci::ResponseCheckTx {
-        println!(
-            "--------------------------------------------------------checj tx: {:?}",
-            _request
-        );
-
-        sleep(Duration::from_secs(4)).await;
+        if CheckTxType::from_i32(_request.r#type).unwrap() == CheckTxType::New {
+            sleep(Duration::from_secs(2)).await;
+        }
 
         Default::default()
     }
