@@ -1,5 +1,5 @@
 mod server;
-pub use server::{dispatch, Server};
+pub use server::*;
 
 mod codec;
 pub use codec::*;

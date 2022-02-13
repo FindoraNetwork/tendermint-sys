@@ -1,9 +1,7 @@
 use bytes::{Buf, BufMut, BytesMut};
 use prost::Message;
-use std::marker::PhantomData;
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt, AsyncRead, AsyncWrite},
-};
+use tm_protos::abci::{Request, Response};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use crate::error::Error;
 
@@ -11,40 +9,34 @@ use crate::error::Error;
 /// we're encountering a decoding error for a varint.
 pub const MAX_VARINT_LENGTH: usize = 16;
 
-pub struct ICodec<R, I> {
+pub struct ICodec<R> {
     stream: R,
     // Long-running read buffer
     read_buf: BytesMut,
     // Fixed-length read window
     read_window: Vec<u8>,
-    _incoming: PhantomData<I>,
 }
 
-impl<R, I> ICodec<R, I>
-where
-    I: Message + Default,
-{
+impl<R> ICodec<R> {
     /// Constructor.
     pub fn new(stream: R, read_buf_size: usize) -> Self {
         Self {
             stream,
             read_buf: BytesMut::new(),
             read_window: vec![0_u8; read_buf_size],
-            _incoming: Default::default(),
         }
     }
 }
 
 // Iterating over a codec produces instances of `Result<I>`.
-impl<R, I> ICodec<R, I>
+impl<R> ICodec<R>
 where
     R: AsyncRead + Unpin,
-    I: Message + Default,
 {
-    pub async fn next(&mut self) -> Option<Result<I, Error>> {
+    pub async fn next(&mut self) -> Option<Result<Request, Error>> {
         loop {
             // Try to decode an incoming message from our buffer first
-            match decode_length_delimited::<I>(&mut self.read_buf) {
+            match decode_length_delimited::<Request>(&mut self.read_buf) {
                 Ok(Some(incoming)) => return Some(Ok(incoming)),
                 Err(e) => return Some(Err(e)),
                 _ => (), // not enough data to decode a message, let's continue.
@@ -66,33 +58,27 @@ where
     }
 }
 
-pub struct OCodec<W, O> {
+pub struct OCodec<W> {
     stream: W,
     write_buf: BytesMut,
-    _incoming: PhantomData<O>,
 }
 
-impl<W, O> OCodec<W, O>
-where
-    O: Message + Default,
-{
+impl<W> OCodec<W> {
     /// Constructor.
     pub fn new(stream: W) -> Self {
         Self {
             stream,
             write_buf: BytesMut::default(),
-            _incoming: Default::default(),
         }
     }
 }
 
-impl<W, O> OCodec<W, O>
+impl<W> OCodec<W>
 where
     W: AsyncWrite + Unpin,
-    O: Message,
 {
     /// Send a message using this codec.
-    pub async fn send(&mut self, message: O) -> Result<(), Error> {
+    pub async fn send(&mut self, message: Response) -> Result<(), Error> {
         encode_length_delimited(message, &mut self.write_buf)?;
         while !self.write_buf.is_empty() {
             let bytes_written = self

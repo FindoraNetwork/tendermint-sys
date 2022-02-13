@@ -27,7 +27,8 @@ impl Application for App {
             _request
         );
 
-        sleep(Duration::from_secs(4)).await;
+        // sleep(Duration::from_secs(4)).await;
+        //
 
         Default::default()
     }
@@ -40,6 +41,8 @@ impl Application for App {
             "--------------------------------------------------------checj tx: {:?}",
             _request
         );
+
+        sleep(Duration::from_secs(4)).await;
 
         Default::default()
     }

@@ -10,7 +10,7 @@ description = "A async abci server."
 bytes = "1.0.1"
 log = "0.4.14"
 prost = "0.8.0"
-tokio = { version = "1", features = ["rt", "net", "io-util", "sync"] }
+tokio = { version = "1", features = ["rt", "net", "io-util", "sync", "rt-multi-thread"] }
 async-trait = "0.1.50"
 tm-abci = { path = "../tm-abci" }
 tm-protos = { path = "../tm-protos" }
